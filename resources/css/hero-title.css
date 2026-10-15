@@ -1,0 +1,168 @@
+@font-face {
+    font-family: 'Fraunces Hero';
+    src: url('../fonts/fraunces-hero.woff2') format('woff2');
+    font-weight: 800;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Fraunces Hero';
+    src: url('../fonts/fraunces-hero-italic.woff2') format('woff2');
+    font-weight: 800;
+    font-style: italic;
+    font-display: swap;
+}
+
+.ht-title {
+    font-family: 'Fraunces Hero', Georgia, 'Times New Roman', serif;
+    font-weight: 800;
+    font-optical-sizing: auto;
+}
+
+.ht-mask {
+    display: inline-block;
+    vertical-align: top;
+    overflow: hidden;
+    padding: 0.1em 0.1em 0.16em;
+    margin: -0.1em -0.1em -0.16em;
+}
+
+.ht-word {
+    display: inline-block;
+    transform-origin: 0 100%;
+    animation: ht-up 1s cubic-bezier(0.2, 0.85, 0.2, 1) backwards;
+    animation-delay: calc(var(--d, 0ms) + var(--i, 0) * 85ms);
+    transition: transform 0.45s cubic-bezier(0.3, 1.5, 0.5, 1), color 0.3s ease;
+}
+
+.ht-mask:hover .ht-word {
+    transform: translateY(-0.06em) rotate(-1.5deg);
+}
+
+.ht-white {
+    color: #fff;
+}
+
+.ht-mask:hover .ht-white {
+    color: #ffe2c4;
+}
+
+.ht-grad {
+    padding: 0.04em 0.1em 0.08em;
+    margin: -0.04em -0.1em -0.08em;
+    font-style: italic;
+    background-image: linear-gradient(100deg, #f47c20 0%, #ffac67 25%, #ffe2c4 50%, #ffac67 75%, #f47c20 100%);
+    background-size: 200% auto;
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    color: transparent;
+    animation: ht-up 1s cubic-bezier(0.2, 0.85, 0.2, 1) backwards, ht-shimmer 5s linear infinite;
+    animation-delay: calc(var(--d, 0ms) + var(--i, 0) * 85ms), var(--sh, 0s);
+}
+
+.ht-ici {
+    position: relative;
+    display: inline-block;
+    vertical-align: top;
+}
+
+.ht-road {
+    position: absolute;
+    left: 0.05em;
+    right: 0.05em;
+    bottom: -0.2em;
+    width: calc(100% - 0.1em);
+    height: auto;
+    overflow: visible;
+    pointer-events: none;
+}
+
+.ht-road-line {
+    stroke-dasharray: 1 1;
+    stroke-dashoffset: 1;
+    animation: ht-draw 1s cubic-bezier(0.5, 0, 0.2, 1) 1.15s forwards;
+}
+
+.ht-road-dash {
+    opacity: 0;
+    stroke-dasharray: 2.5 5;
+    animation: ht-fade 0.4s ease 2s forwards, ht-march 1s linear 2s infinite;
+}
+
+.ht-pin {
+    opacity: 0;
+    animation: ht-fade 0.3s ease 2s forwards;
+}
+
+.ht-pin-ring {
+    transform-box: fill-box;
+    transform-origin: center;
+    opacity: 0;
+    animation: ht-ring 2.2s ease-out 2.2s infinite;
+}
+
+@keyframes ht-up {
+    from {
+        transform: translateY(115%) rotate(5deg);
+    }
+}
+
+@keyframes ht-shimmer {
+    to {
+        background-position: 200% center;
+    }
+}
+
+@keyframes ht-draw {
+    to {
+        stroke-dashoffset: 0;
+    }
+}
+
+@keyframes ht-fade {
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes ht-march {
+    to {
+        stroke-dashoffset: -7.5;
+    }
+}
+
+@keyframes ht-ring {
+    0% {
+        transform: scale(1);
+        opacity: 0.9;
+    }
+
+    100% {
+        transform: scale(3.4);
+        opacity: 0;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+
+    .ht-word,
+    .ht-grad,
+    .ht-road-line,
+    .ht-road-dash,
+    .ht-pin,
+    .ht-pin-ring {
+        animation: none !important;
+        transition: none !important;
+    }
+
+    .ht-road-line {
+        stroke-dashoffset: 0;
+    }
+
+    .ht-road-dash,
+    .ht-pin {
+        opacity: 1;
+    }
+}

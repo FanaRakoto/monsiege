@@ -1,4 +1,6 @@
-@import "tailwindcss";
+@import 'tailwindcss';
+@import './hero.css';
+@import './hero-title.css';
 
 /*
 |--------------------------------------------------------------------------
@@ -71,4 +73,750 @@ body {
 
 .monsiege-button-green {
     @apply inline-flex items-center justify-center rounded-xl bg-[#0B6E4F] px-5 py-3 font-bold text-white transition hover:bg-emerald-800 hover:shadow-lg;
+}
+
+
+
+/* ============================================================
+   MONSIÈGE - VEHICLE / SEAT MAP
+============================================================ */
+
+.vehicle-shell {
+    position: relative;
+    overflow: hidden;
+    border: 8px solid #0f172a;
+    border-radius: 3.5rem;
+    background:
+        linear-gradient(180deg,
+            #f8fafc 0%,
+            #e2e8f0 45%,
+            #cbd5e1 100%);
+    box-shadow:
+        0 30px 70px rgba(15, 23, 42, 0.20),
+        inset 0 0 0 1px rgba(255, 255, 255, 0.8);
+}
+
+.vehicle-windshield {
+    margin: 12px 12px 0;
+    padding: 16px 0;
+    border-radius: 2.5rem 2.5rem 1.5rem 1.5rem;
+    background:
+        linear-gradient(135deg,
+            rgba(15, 23, 42, 0.97),
+            rgba(30, 41, 59, 0.82),
+            rgba(51, 65, 85, 0.55));
+    box-shadow:
+        inset 0 2px 10px rgba(255, 255, 255, 0.08),
+        0 8px 20px rgba(15, 23, 42, 0.12);
+}
+
+.driver-zone {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 20px;
+    align-items: center;
+    margin: 14px;
+    padding: 20px;
+    border: 1px solid rgba(148, 163, 184, 0.25);
+    border-radius: 2rem;
+    background: rgba(255, 255, 255, 0.66);
+    backdrop-filter: blur(10px);
+}
+
+.driver-cabin {
+    position: relative;
+    display: flex;
+    min-height: 145px;
+    align-items: center;
+    justify-content: center;
+}
+
+.driver-seat-visual {
+    position: relative;
+    width: 105px;
+}
+
+.driver-seat-back {
+    width: 75px;
+    height: 74px;
+    margin: 0 auto;
+    border-radius: 28px 28px 18px 18px;
+    background: linear-gradient(145deg, #334155, #0f172a);
+    box-shadow:
+        inset 8px 8px 14px rgba(255, 255, 255, 0.08),
+        8px 12px 18px rgba(15, 23, 42, 0.16);
+}
+
+.driver-headrest {
+    width: 38px;
+    height: 26px;
+    margin: -7px auto 0;
+    border-radius: 14px;
+    background: #0f172a;
+}
+
+.driver-seat-cushion {
+    width: 105px;
+    height: 58px;
+    margin-top: -3px;
+    border-radius: 20px 20px 28px 28px;
+    background: linear-gradient(145deg, #475569, #1e293b);
+    box-shadow:
+        inset 8px 8px 12px rgba(255, 255, 255, 0.06),
+        0 12px 20px rgba(15, 23, 42, 0.18);
+}
+
+.steering-wheel {
+    position: relative;
+    width: 78px;
+    height: 78px;
+    margin-left: 35px;
+    border: 9px solid #1e293b;
+    border-radius: 9999px;
+    box-shadow:
+        inset 0 0 0 3px #475569,
+        0 8px 15px rgba(15, 23, 42, 0.15);
+}
+
+.steering-wheel-center {
+    position: absolute;
+    inset: 50% auto auto 50%;
+    display: flex;
+    width: 28px;
+    height: 28px;
+    transform: translate(-50%, -50%);
+    align-items: center;
+    justify-content: center;
+    border-radius: 9999px;
+    background: #0B6E4F;
+    color: white;
+    font-size: 8px;
+    font-weight: 900;
+}
+
+.driver-information {
+    min-width: 125px;
+}
+
+.passenger-cabin {
+    margin: 14px;
+    padding: 24px;
+    border-radius: 2.5rem;
+    background:
+        linear-gradient(180deg,
+            rgba(255, 255, 255, 0.94),
+            rgba(241, 245, 249, 0.98));
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.8),
+        0 10px 30px rgba(15, 23, 42, 0.08);
+}
+
+.seat-row {
+    display: grid;
+    grid-template-columns:
+        minmax(0, 1fr) minmax(0, 1fr) 30px minmax(0, 1fr) minmax(0, 1fr);
+    align-items: center;
+    gap: 10px;
+}
+
+.aisle {
+    display: flex;
+    min-height: 82px;
+    align-items: center;
+    justify-content: center;
+    color: #94a3b8;
+    font-size: 9px;
+    font-weight: 800;
+    opacity: 0.5;
+}
+
+.seat-button {
+    position: relative;
+    display: flex;
+    min-height: 78px;
+    cursor: pointer;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-end;
+    border: 0;
+    background: transparent;
+    padding: 4px;
+    transition:
+        transform 180ms ease,
+        filter 180ms ease;
+}
+
+.seat-button:hover {
+    transform: translateY(-3px);
+    filter: drop-shadow(0 10px 10px rgba(11, 110, 79, 0.16));
+}
+
+.seat-back {
+    position: relative;
+    width: 70%;
+    height: 39px;
+    border-radius: 18px 18px 11px 11px;
+    background:
+        linear-gradient(145deg,
+            #9ca3af,
+            #64748b);
+    box-shadow:
+        inset 5px 5px 8px rgba(255, 255, 255, 0.35),
+        inset -5px -6px 10px rgba(15, 23, 42, 0.18),
+        0 6px 8px rgba(15, 23, 42, 0.11);
+}
+
+.seat-cushion {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    width: 88%;
+    height: 31px;
+    align-items: center;
+    justify-content: center;
+    margin-top: -1px;
+    border-radius: 12px 12px 17px 17px;
+    background:
+        linear-gradient(145deg,
+            #e5e7eb,
+            #94a3b8);
+    box-shadow:
+        inset 4px 4px 7px rgba(255, 255, 255, 0.45),
+        inset -4px -4px 8px rgba(15, 23, 42, 0.15),
+        0 7px 10px rgba(15, 23, 42, 0.14);
+}
+
+.seat-number {
+    display: flex;
+    width: 24px;
+    height: 24px;
+    align-items: center;
+    justify-content: center;
+    border-radius: 9999px;
+    background: #0B6E4F;
+    color: white;
+    font-size: 10px;
+    font-weight: 900;
+    box-shadow: 0 3px 8px rgba(11, 110, 79, 0.25);
+}
+
+.seat-window {
+    position: absolute;
+    top: 2px;
+    right: 13%;
+    font-size: 16px;
+    color: #60a5fa;
+}
+
+.seat-is-occupied {
+    cursor: not-allowed;
+    filter: grayscale(0.15);
+}
+
+.seat-is-occupied .seat-back {
+    background:
+        linear-gradient(145deg,
+            #fca5a5,
+            #ef4444);
+}
+
+.seat-is-occupied .seat-cushion {
+    background:
+        linear-gradient(145deg,
+            #fecaca,
+            #dc2626);
+}
+
+.seat-is-locked {
+    cursor: not-allowed;
+}
+
+.seat-is-locked .seat-back {
+    background:
+        linear-gradient(145deg,
+            #fdba74,
+            #f97316);
+}
+
+.seat-is-locked .seat-cushion {
+    background:
+        linear-gradient(145deg,
+            #fed7aa,
+            #ea580c);
+}
+
+.seat-status-icon {
+    position: absolute;
+    top: 0;
+    right: 4px;
+    z-index: 4;
+    display: flex;
+    width: 21px;
+    height: 21px;
+    align-items: center;
+    justify-content: center;
+    border-radius: 9999px;
+    background: white;
+    font-size: 9px;
+    font-weight: 900;
+    box-shadow: 0 3px 8px rgba(15, 23, 42, 0.15);
+}
+
+.seat-button.is-selected {
+    transform: translateY(-4px) scale(1.04);
+    filter: drop-shadow(0 12px 15px rgba(244, 124, 32, 0.28));
+}
+
+.seat-button.is-selected .seat-back {
+    background:
+        linear-gradient(145deg,
+            #fb923c,
+            #ea580c);
+}
+
+.seat-button.is-selected .seat-cushion {
+    background:
+        linear-gradient(145deg,
+            #fdba74,
+            #f97316);
+}
+
+.seat-button.is-selected .seat-number {
+    background: #ffffff;
+    color: #F47C20;
+}
+
+.vehicle-rear {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 22px;
+    margin: 14px;
+    padding: 12px;
+    border-radius: 9999px;
+    background: #0f172a;
+    color: #94a3b8;
+    font-size: 8px;
+    font-weight: 900;
+    letter-spacing: 0.18em;
+}
+
+.vehicle-rear-light {
+    width: 12px;
+    height: 7px;
+    border-radius: 9999px;
+    background: #ef4444;
+    box-shadow: 0 0 12px rgba(239, 68, 68, 0.5);
+}
+
+.legend-seat {
+    display: inline-block;
+    width: 18px;
+    height: 18px;
+    border-radius: 6px;
+}
+
+.legend-seat.available {
+    background: #22c55e;
+}
+
+.legend-seat.selected {
+    background: #F47C20;
+}
+
+.legend-seat.locked {
+    background: #f97316;
+}
+
+.legend-seat.occupied {
+    background: #ef4444;
+}
+
+
+.vehicle-shell {
+    position: relative;
+    width: 100%;
+    max-width: 430px;
+    overflow: hidden;
+    border: 6px solid #0f172a;
+    border-radius: 3rem;
+    background:
+        linear-gradient(180deg,
+            #f8fafc 0%,
+            #e2e8f0 50%,
+            #cbd5e1 100%);
+    box-shadow:
+        0 25px 50px rgba(15, 23, 42, 0.18),
+        inset 0 0 0 1px rgba(255, 255, 255, 0.9);
+}
+
+.front-cabin {
+    display: grid;
+    grid-template-columns: 1.2fr 1fr;
+    gap: 12px;
+    margin: 12px;
+    padding: 12px;
+    border-radius: 2rem;
+    background: rgba(255, 255, 255, 0.72);
+    backdrop-filter: blur(10px);
+}
+
+.front-passengers {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    border-left: 1px solid rgba(148, 163, 184, 0.25);
+    padding-left: 10px;
+}
+
+.driver-block {
+    position: relative;
+    display: flex;
+    min-height: 115px;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.driver-seat-visual {
+    position: relative;
+    width: 75px;
+}
+
+.driver-seat-back {
+    width: 52px;
+    height: 52px;
+    margin: auto;
+    border-radius: 20px 20px 12px 12px;
+    background: linear-gradient(145deg, #475569, #0f172a);
+    box-shadow:
+        inset 5px 5px 9px rgba(255, 255, 255, 0.08),
+        6px 8px 12px rgba(15, 23, 42, 0.16);
+}
+
+.driver-headrest {
+    width: 28px;
+    height: 19px;
+    margin: -5px auto 0;
+    border-radius: 10px;
+    background: #0f172a;
+}
+
+.driver-seat-cushion {
+    width: 72px;
+    height: 35px;
+    margin-top: -2px;
+    border-radius: 12px 12px 17px 17px;
+    background: linear-gradient(145deg, #64748b, #1e293b);
+}
+
+.steering-wheel {
+    position: relative;
+    width: 52px;
+    height: 52px;
+    border: 7px solid #1e293b;
+    border-radius: 9999px;
+    box-shadow:
+        inset 0 0 0 2px #475569,
+        0 5px 10px rgba(15, 23, 42, 0.15);
+}
+
+.steering-wheel-center {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    display: flex;
+    width: 20px;
+    height: 20px;
+    transform: translate(-50%, -50%);
+    align-items: center;
+    justify-content: center;
+    border-radius: 9999px;
+    background: #0B6E4F;
+    color: white;
+    font-size: 6px;
+    font-weight: 900;
+}
+
+.driver-name {
+    min-width: 72px;
+}
+
+.passenger-cabin {
+    margin: 12px;
+    padding: 17px;
+    border-radius: 2rem;
+    background:
+        linear-gradient(180deg,
+            rgba(255, 255, 255, 0.96),
+            rgba(241, 245, 249, 0.98));
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.9),
+        0 8px 22px rgba(15, 23, 42, 0.07);
+}
+
+.seat-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr 22px 1fr 1fr;
+    align-items: center;
+    gap: 6px;
+}
+
+.aisle {
+    display: flex;
+    min-height: 67px;
+    align-items: center;
+    justify-content: center;
+    color: #94a3b8;
+    font-size: 8px;
+    font-weight: 800;
+}
+
+.seat-button {
+    position: relative;
+    display: flex;
+    min-height: 62px;
+    cursor: pointer;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-end;
+    border: 0;
+    background: transparent;
+    padding: 2px;
+    transition:
+        transform 180ms ease,
+        filter 180ms ease;
+}
+
+.seat-back {
+    width: 64%;
+    height: 29px;
+    border-radius: 13px 13px 8px 8px;
+}
+
+.seat-cushion {
+    width: 82%;
+    height: 25px;
+    border-radius: 9px 9px 13px 13px;
+}
+
+.seat-number {
+    width: 20px;
+    height: 20px;
+    font-size: 8px;
+}
+
+
+/* ============================================================
+   MOBILE
+============================================================ */
+
+/* ==========================================================
+   MonSiège – animations du hero et de la barre de recherche
+   À importer dans resources/css/app.css :  @import './hero.css';
+   ========================================================== */
+
+/* Apparition en cascade (aucun JavaScript nécessaire) */
+.hr-rise {
+    animation: hr-rise 0.9s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+    animation-delay: var(--d, 0ms);
+}
+
+/* Reflet qui traverse le mot clé du titre */
+.hr-shimmer {
+    background-size: 200% auto;
+    animation: hr-shimmer 5s linear infinite;
+}
+
+/* Bordure lumineuse qui tourne autour de la barre de recherche */
+.hr-glow {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+    border-radius: 1.9rem;
+    padding: 2px;
+    background: rgb(255 255 255 / 0.4);
+}
+
+.hr-glow::before {
+    content: '';
+    position: absolute;
+    z-index: -1;
+    left: 50%;
+    top: 50%;
+    width: 300%;
+    aspect-ratio: 1;
+    translate: -50% -50%;
+    background: conic-gradient(from 0deg,
+            transparent 0 55%,
+            #f47c20 72%,
+            #ffe2c4 82%,
+            #f47c20 90%,
+            transparent 100%);
+    animation: hr-spin 7s linear infinite;
+}
+
+.hr-glow:focus-within::before {
+    animation-duration: 3s;
+}
+
+.hr-glow.hr-paused::before {
+    animation-play-state: paused;
+}
+
+/* Reflet du bouton Rechercher */
+.hr-shine::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(105deg, transparent 35%, rgb(255 255 255 / 0.4) 50%, transparent 65%);
+    transform: translateX(-120%);
+}
+
+.hr-shine:hover::after {
+    transform: translateX(120%);
+    transition: transform 0.8s ease;
+}
+
+/* Bouton « inverser » */
+.hr-swap svg {
+    transition: transform 0.5s cubic-bezier(0.3, 1.4, 0.5, 1);
+}
+
+.hr-swap[data-flipped='true'] svg {
+    transform: rotate(180deg);
+}
+
+/* Champ « passagers » sans flèches natives */
+.hr-num {
+    appearance: textfield;
+    -moz-appearance: textfield;
+}
+
+.hr-num::-webkit-outer-spin-button,
+.hr-num::-webkit-inner-spin-button {
+    appearance: none;
+    margin: 0;
+}
+
+/* Retour visuel quand un champ est rempli par un raccourci */
+.hr-flash {
+    animation: hr-flash 0.9s ease;
+}
+
+.hr-bump {
+    animation: hr-bump 0.25s ease;
+}
+
+@keyframes hr-rise {
+    from {
+        opacity: 0;
+        transform: translateY(24px);
+    }
+
+    to {
+        opacity: 1;
+        transform: none;
+    }
+}
+
+@keyframes hr-shimmer {
+    to {
+        background-position: 200% center;
+    }
+}
+
+@keyframes hr-spin {
+    to {
+        rotate: 360deg;
+    }
+}
+
+@keyframes hr-flash {
+    0% {
+        background-color: rgb(209 239 227);
+    }
+
+    100% {
+        background-color: transparent;
+    }
+}
+
+@keyframes hr-bump {
+    50% {
+        transform: scale(1.25);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+
+    .hr-rise,
+    .hr-shimmer,
+    .hr-glow::before,
+    .hr-flash,
+    .hr-bump {
+        animation: none !important;
+    }
+}
+
+@media (max-width: 640px) {
+
+    .vehicle-shell {
+        border-width: 5px;
+        border-radius: 2.5rem;
+    }
+
+    .passenger-cabin {
+        padding: 16px;
+    }
+
+    .seat-row {
+        gap: 6px;
+    }
+
+    .aisle {
+        min-height: 70px;
+        font-size: 8px;
+    }
+
+    .seat-back {
+        width: 75%;
+    }
+
+    .seat-cushion {
+        width: 94%;
+    }
+
+    .seat-number {
+        width: 21px;
+        height: 21px;
+        font-size: 9px;
+    }
+
+
+
+
+
+
+
+    .vehicle-shell {
+        max-width: 380px;
+        border-width: 5px;
+    }
+
+    .front-cabin {
+        grid-template-columns: 1fr;
+    }
+
+    .front-passengers {
+        border-left: 0;
+        border-top: 1px solid rgba(148, 163, 184, 0.25);
+        padding-left: 0;
+        padding-top: 8px;
+    }
+
+    .seat-row {
+        gap: 4px;
+    }
 }

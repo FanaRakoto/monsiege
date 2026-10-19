@@ -27,158 +27,85 @@
         </div>
 
 
-        <div class="grid gap-6 lg:grid-cols-[1fr_320px]">
+        <form
+            method="POST"
+            action="{{ route('reservations.passengers.store', ['trip' => $trip]) }}"
+            class="grid gap-6 lg:grid-cols-[1fr_320px]">
+            @csrf
 
+            {{-- Résumé --}}
+            <aside class="h-fit rounded-3xl border border-slate-200 bg-white p-6 shadow-sm lg:sticky lg:top-28">
 
-            {{-- Passagers --}}
-            <div class="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+                <h2 class="text-xl font-black text-[#1E293B]">
+                    Résumé
+                </h2>
 
-                @for($i = 1; $i <= $passengerCount; $i++)
+                <div class="mt-5 space-y-4">
 
-                    <div class="mb-6 rounded-2xl border border-slate-200 p-5 last:mb-0">
+                    <div>
+                        <p class="text-xs font-bold uppercase tracking-wider text-slate-400">
+                            Chauffeur
+                        </p>
 
-                    <div class="mb-5 flex items-center justify-between">
-
-                        <h2 class="font-black text-[#1E293B]">
-                            Passager {{ $i }}
-                        </h2>
-
-                        <span class="rounded-full bg-[#F47C20]/10 px-3 py-1 text-xs font-bold text-[#F47C20]">
-                            Siège {{ $seats[$i - 1]->seat_number ?? '?' }}
-                        </span>
-
+                        <p class="mt-1 font-bold text-slate-700">
+                            {{ $trip->driver?->user?->name ?? 'Non affecté' }}
+                        </p>
                     </div>
 
-                    <div class="grid gap-4 sm:grid-cols-2">
+                    <div>
+                        <p class="text-xs font-bold uppercase tracking-wider text-slate-400">
+                            Réservateur
+                        </p>
 
-                        <div>
+                        <p class="mt-1 font-bold text-slate-700">
+                            {{ $reservationUser?->name ?? 'Visiteur' }}
+                        </p>
+                    </div>
 
-                            <label class="mb-2 block text-sm font-semibold text-slate-700">
-                                Prénom
-                            </label>
+                    <div>
+                        <p class="text-xs font-bold uppercase tracking-wider text-slate-400">
+                            Sièges
+                        </p>
 
-                            <input
-                                type="text"
-                                name="first_name[]"
-                                required
-                                class="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 outline-none focus:border-[#0B6E4F] focus:ring-2 focus:ring-[#0B6E4F]/10">
+                        <div class="mt-2 flex flex-wrap gap-2">
 
-                        </div>
+                            @foreach($seats as $seat)
 
-                        <div>
+                            <span class="rounded-lg bg-[#F47C20]/10 px-3 py-2 text-xs font-bold text-[#F47C20]">
+                                {{ $seat->seat_number }}
+                            </span>
 
-                            <label class="mb-2 block text-sm font-semibold text-slate-700">
-                                Nom
-                            </label>
-
-                            <input
-                                type="text"
-                                name="last_name[]"
-                                required
-                                class="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 outline-none focus:border-[#0B6E4F] focus:ring-2 focus:ring-[#0B6E4F]/10">
-
-                        </div>
-
-                        <div>
-
-                            <label class="mb-2 block text-sm font-semibold text-slate-700">
-                                Téléphone
-                            </label>
-
-                            <input
-                                type="tel"
-                                name="phone[]"
-                                required
-                                class="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 outline-none focus:border-[#0B6E4F] focus:ring-2 focus:ring-[#0B6E4F]/10">
-
-                        </div>
-
-                        <div>
-
-                            <label class="mb-2 block text-sm font-semibold text-slate-700">
-                                Email
-                            </label>
-
-                            <input
-                                type="email"
-                                name="email[]"
-                                class="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 outline-none focus:border-[#0B6E4F] focus:ring-2 focus:ring-[#0B6E4F]/10">
+                            @endforeach
 
                         </div>
 
                     </div>
 
-            </div>
+                    <div class="border-t border-slate-100 pt-4">
 
-            @endfor
+                        <p class="text-xs font-bold uppercase tracking-wider text-slate-400">
+                            Prix total
+                        </p>
 
-        </div>
-
-
-        {{-- Résumé --}}
-        <aside class="h-fit rounded-3xl border border-slate-200 bg-white p-6 shadow-sm lg:sticky lg:top-28">
-
-            <h2 class="text-xl font-black text-[#1E293B]">
-                Résumé
-            </h2>
-
-            <div class="mt-5 space-y-4">
-
-                <div>
-                    <p class="text-xs font-bold uppercase tracking-wider text-slate-400">
-                        Chauffeur
-                    </p>
-
-                    <p class="mt-1 font-bold text-slate-700">
-                        {{ $trip->driver?->user?->name ?? 'Non affecté' }}
-                    </p>
-                </div>
-
-                <div>
-                    <p class="text-xs font-bold uppercase tracking-wider text-slate-400">
-                        Réservateur
-                    </p>
-
-                    <p class="mt-1 font-bold text-slate-700">
-                        {{ $reservationUser?->name ?? 'Visiteur' }}
-                    </p>
-                </div>
-
-                <div>
-                    <p class="text-xs font-bold uppercase tracking-wider text-slate-400">
-                        Sièges
-                    </p>
-
-                    <div class="mt-2 flex flex-wrap gap-2">
-
-                        @foreach($seats as $seat)
-
-                        <span class="rounded-lg bg-[#F47C20]/10 px-3 py-2 text-xs font-bold text-[#F47C20]">
-                            {{ $seat->seat_number }}
-                        </span>
-
-                        @endforeach
+                        <p class="mt-1 text-2xl font-black text-[#0B6E4F]">
+                            {{ number_format($trip->price * $passengerCount, 0, ',', ' ') }} Ar
+                        </p>
 
                     </div>
 
-                </div>
-
-                <div class="border-t border-slate-100 pt-4">
-
-                    <p class="text-xs font-bold uppercase tracking-wider text-slate-400">
-                        Prix total
-                    </p>
-
-                    <p class="mt-1 text-2xl font-black text-[#0B6E4F]">
-                        {{ number_format($trip->price * $passengerCount, 0, ',', ' ') }} Ar
-                    </p>
+                    <button
+                        type="submit"
+                        class="mt-6 w-full rounded-xl bg-[#0B6E4F] px-5 py-4
+           font-bold text-white transition hover:bg-[#08563D]
+           focus:outline-none focus:ring-4 focus:ring-[#0B6E4F]/20">
+                        Continuer vers le paiement
+                        <span aria-hidden="true">→</span>
+                    </button>
 
                 </div>
 
-            </div>
-
-        </aside>
-
+            </aside>
+        </form>
     </div>
 
     </div>

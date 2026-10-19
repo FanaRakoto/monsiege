@@ -9,6 +9,7 @@ use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use App\Models\Passenger;
 
 class ReservationController extends Controller
 {
@@ -298,7 +299,7 @@ class ReservationController extends Controller
         $seats = $reservation->reservationSeats
             ->pluck('seat')
             ->filter()
-            ->sortBy(fn ($seat) => sprintf(
+            ->sortBy(fn($seat) => sprintf(
                 '%04d-%04d',
                 $seat->row_number,
                 $seat->column_number
@@ -319,6 +320,126 @@ class ReservationController extends Controller
             'seats' => $seats,
             'passengerCount' => $reservation->passenger_count,
             'reservationUser' => $request->user(),
+        ]);
+    }
+
+
+    /**
+     * Enregistrer les passagers avant le paiement.
+     */
+    public function storePassengers(Request $request, Trip $trip)
+    {
+        $reservationId = $request->session()->get(
+            'monsiege.reservation_id'
+        );
+
+        $reservation = Reservation::query()
+            ->whereKey($reservationId)
+            ->where('trip_id', $trip->id)
+            ->where('user_id', $request->user()->id)
+            ->first();
+
+        if (
+            !$reservation
+            || $reservation->status !== 'pending'
+            || !$reservation->expires_at
+            || $reservation->expires_at->isPast()
+        ) {
+            return redirect()
+                ->route('reservations.create', ['trip' => $trip])
+                ->withErrors([
+                    'reservation' => 'Votre réservation a expiré. Veuillez recommencer.',
+                ]);
+        }
+
+        $validated = $request->validate([
+            'first_name' => [
+                'required',
+                'array',
+                'size:' . $reservation->passenger_count,
+            ],
+            'first_name.*' => [
+                'required',
+                'string',
+                'max:100',
+            ],
+            'last_name' => [
+                'required',
+                'array',
+                'size:' . $reservation->passenger_count,
+            ],
+            'last_name.*' => [
+                'required',
+                'string',
+                'max:100',
+            ],
+            'phone' => [
+                'required',
+                'array',
+                'size:' . $reservation->passenger_count,
+            ],
+            'phone.*' => [
+                'required',
+                'string',
+                'max:30',
+            ],
+            'email' => [
+                'present',
+                'array',
+                'size:' . $reservation->passenger_count,
+            ],
+            'email.*' => [
+                'nullable',
+                'email',
+                'max:255',
+            ],
+        ]);
+
+        DB::transaction(function () use (
+            $reservation,
+            $validated
+        ) {
+            $reservation = Reservation::query()
+                ->whereKey($reservation->id)
+                ->lockForUpdate()
+                ->firstOrFail();
+
+            if (
+                $reservation->status !== 'pending'
+                || !$reservation->expires_at
+                || $reservation->expires_at->isPast()
+            ) {
+                abort(409, 'La réservation a expiré.');
+            }
+
+            // Remplacer les informations précédentes si le formulaire
+            // est envoyé une nouvelle fois avant le paiement.
+            $reservation->passengers()->delete();
+
+            foreach (
+                $validated['first_name'] as $index => $firstName
+            ) {
+                Passenger::create([
+                    'reservation_id' => $reservation->id,
+                    'first_name' => trim($firstName),
+                    'last_name' => trim(
+                        $validated['last_name'][$index]
+                    ),
+                    'phone' => trim(
+                        $validated['phone'][$index]
+                    ),
+                    'email' => filled(
+                        $validated['email'][$index] ?? null
+                    )
+                        ? $validated['email'][$index]
+                        : null,
+                    'is_primary' => $index === 0,
+                ]);
+            }
+        });
+
+        return redirect()->route('reservations.payment.show', [
+            'trip' => $trip,
         ]);
     }
 }

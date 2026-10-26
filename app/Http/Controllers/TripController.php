@@ -9,9 +9,7 @@ use Illuminate\Support\Carbon;
 
 class TripController extends Controller
 {
-    /**
-     * Construire la requête des voyages disponibles.
-     */
+    /** Construire la requête des voyages à venir et réservables. */
     private function availableTripsQuery(): Builder
     {
         return Trip::query()
@@ -20,9 +18,7 @@ class TripController extends Controller
             ->where('departure_at', '>=', now());
     }
 
-    /**
-     * Accueil : afficher les trois prochains voyages.
-     */
+    /** Accueil : les trois prochains voyages. */
     public function home()
     {
         $popularTrips = $this->availableTripsQuery()
@@ -33,53 +29,40 @@ class TripController extends Controller
         return view('welcome', compact('popularTrips'));
     }
 
-    /**
-     * Liste complète avec recherche et pagination.
-     */
+    /** Liste publique avec recherche et pagination. */
     public function index(Request $request)
     {
-        $filters = $request->validate([
+        $search = $request->validate([
             'departure' => ['nullable', 'string', 'max:100'],
             'destination' => ['nullable', 'string', 'max:100'],
             'departure_date' => ['nullable', 'date', 'after_or_equal:today'],
+            'passengers' => ['nullable', 'integer', 'min:1', 'max:6'],
         ]);
 
+        $search['passengers'] = (int) ($search['passengers'] ?? 1);
         $query = $this->availableTripsQuery();
 
-        if (! empty($filters['departure'])) {
-            $query->where(
-                'departure_city',
-                'like',
-                '%' . trim($filters['departure']) . '%'
-            );
+        if (! empty($search['departure'])) {
+            $query->where('departure_city', 'like', '%' . trim($search['departure']) . '%');
         }
 
-        if (! empty($filters['destination'])) {
-            $query->where(
-                'arrival_city',
-                'like',
-                '%' . trim($filters['destination']) . '%'
-            );
+        if (! empty($search['destination'])) {
+            $query->where('arrival_city', 'like', '%' . trim($search['destination']) . '%');
         }
 
-        if (! empty($filters['departure_date'])) {
-            $query->whereDate(
-                'departure_at',
-                $filters['departure_date']
-            );
+        if (! empty($search['departure_date'])) {
+            $query->whereDate('departure_at', $search['departure_date']);
         }
 
         $trips = $query
             ->orderBy('departure_at')
-            ->paginate(9)
+            ->paginate(6)
             ->withQueryString();
 
-        return view('trips.index', compact('trips'));
+        return view('trips.index', compact('trips', 'search'));
     }
 
-    /**
-     * Afficher les détails d'un voyage encore disponible.
-     */
+    /** Détails d'un voyage encore disponible. */
     public function show(Trip $trip)
     {
         if (
@@ -88,18 +71,10 @@ class TripController extends Controller
         ) {
             return redirect()
                 ->route('trips.index')
-                ->with(
-                    'error',
-                    'Ce voyage n’est plus disponible à la réservation.'
-                );
+                ->with('error', 'Ce voyage n’est plus disponible à la réservation.');
         }
 
-        $trip->load([
-            'agency',
-            'vehicle',
-            'vehicle.seats',
-            'driver.user',
-        ]);
+        $trip->load(['agency', 'vehicle', 'vehicle.seats', 'driver.user']);
 
         return view('trips.show', compact('trip'));
     }

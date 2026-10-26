@@ -212,16 +212,38 @@
             @forelse ($popularTrips as $trip)
                 @php
                     $departureAt = \Illuminate\Support\Carbon::parse($trip->departure_at);
+                    $destinationKey = strtolower(trim($trip->arrival_city));
+                    $fallbackImage = match ($destinationKey) {
+                        'toamasina', 'tamatave' => 'images/voyages/toamasina.jpeg',
+                        'fianarantsoa' => 'images/voyages/fianarantsoa.jpeg',
+                        'toliara', 'tulear' => 'images/voyages/toliara-rn7.jpeg',
+                        'mahajanga' => 'images/voyages/mahajanga.jpeg',
+                        'antsiranana', 'diego-suarez' => 'images/voyages/antsiranana.jpeg',
+                        default => 'images/voyages/RN7.jpeg',
+                    };
+                    $tripImage = $trip->image_path ?: $fallbackImage;
                 @endphp
                 <article class="group flex h-full flex-col overflow-hidden rounded-[1.6rem] border border-slate-200/80 bg-white shadow-sm transition duration-300 hover:-translate-y-1.5 hover:border-emerald-200 hover:shadow-[0_22px_55px_-25px_rgba(11,110,79,0.32)]">
+                    {{-- Photo illustrative du trajet --}}
+                    <div class="relative h-44 overflow-hidden bg-slate-100 sm:h-48">
+                        <img
+                            src="{{ asset($tripImage) }}"
+                            alt="Photo illustrative du voyage vers {{ $trip->arrival_city }}"
+                            class="h-full w-full object-cover transition duration-500 group-hover:scale-105"
+                            loading="lazy"
+                            decoding="async"
+                        >
+                        <div class="pointer-events-none absolute inset-0 bg-gradient-to-t from-slate-950/25 via-transparent to-transparent" aria-hidden="true"></div>
+                        <span class="absolute left-4 top-4 inline-flex items-center gap-2 rounded-full border border-white/30 bg-[#0B6E4F]/90 px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider text-white shadow-sm backdrop-blur">
+                            <span class="size-1.5 rounded-full bg-[#FFAC67]"></span>Voyage disponible
+                        </span>
+                    </div>
+
                     {{-- Bandeau de carte --}}
                     <div class="relative overflow-hidden bg-gradient-to-br from-[#0B6E4F] via-[#09563F] to-[#073F30] px-6 pb-6 pt-5 text-white">
                         <div class="pointer-events-none absolute -right-7 -top-10 size-40 rounded-full border border-white/10" aria-hidden="true"></div>
                         <div class="pointer-events-none absolute -right-1 -top-4 size-28 rounded-full border border-white/10" aria-hidden="true"></div>
-                        <div class="relative flex items-start justify-between gap-3">
-                            <span class="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider text-white/90 backdrop-blur">
-                                <span class="size-1.5 rounded-full bg-[#FFAC67]"></span>Voyage disponible
-                            </span>
+                        <div class="relative flex items-start justify-end gap-3">
                             <span class="flex size-11 shrink-0 items-center justify-center rounded-2xl bg-white/10 text-[#FFBC83] ring-1 ring-white/15 transition duration-300 group-hover:rotate-3 group-hover:scale-105" aria-hidden="true">
                                 <svg class="size-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 16.5 6.5 8A2 2 0 0 1 8.47 6.4h7.06A2 2 0 0 1 17.5 8l1.5 8.5M4.5 16.5h15M6 16.5v2m12-2v2M7 11h10M7.5 13.5h.01M16.5 13.5h.01" /><path stroke-linecap="round" d="M8 6.4 9 4h6l1 2.4" /></svg>
                             </span>

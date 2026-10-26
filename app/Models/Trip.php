@@ -22,6 +22,7 @@ class Trip extends Model
         'arrival_address',
         'departure_at',
         'arrival_at',
+        'image_path',
         'price',
         'currency',
         'status',
@@ -37,43 +38,33 @@ class Trip extends Model
         ];
     }
 
-    /**
-     * Agence qui organise le voyage.
-     */
+    /** Agence qui organise le voyage. */
     public function agency(): BelongsTo
     {
         return $this->belongsTo(Agency::class);
     }
 
-    /**
-     * Véhicule utilisé.
-     */
+    /** Véhicule utilisé. */
     public function vehicle(): BelongsTo
     {
         return $this->belongsTo(Vehicle::class);
     }
 
-    /**
-     * Chauffeur affecté.
-     */
+    /** Chauffeur affecté. */
     public function driver(): BelongsTo
     {
         return $this->belongsTo(Driver::class);
     }
 
-    /**
-     * Réservations de ce voyage.
-     */
+    /** Réservations de ce voyage. */
     public function reservations(): HasMany
     {
         return $this->hasMany(Reservation::class);
     }
 
-    /**
-     * Occupation des sièges pour ce voyage.
-     */
+    /** Occupation des sièges pour ce voyage. */
     public function reservationSeats(): HasMany
     {
         return $this->hasMany(ReservationSeat::class);
     }
-}
+}   

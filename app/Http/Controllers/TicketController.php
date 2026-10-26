@@ -11,7 +11,8 @@ use Illuminate\Support\Facades\DB;
 class TicketController extends Controller
 {
     /**
-     * Afficher le billet du client qui a effectué la réservation.
+     * Afficher le billet de son propriétaire ou le billet associé à la
+     * session invitée ayant effectué la réservation.
      */
     public function show(Request $request, Ticket $ticket)
     {
@@ -23,14 +24,25 @@ class TicketController extends Controller
             'reservation.reservationSeats.seat',
         ]);
 
+        $reservation = $ticket->reservation;
+        $user = $request->user();
+
+        $isAuthenticatedOwner = $user !== null
+            && $reservation->user_id !== null
+            && (string) $reservation->user_id === (string) $user->id;
+
+        $sessionTicketId = (string) $request->session()->get('monsiege.ticket_id', '');
+        $isGuestOwner = $reservation->user_id === null
+            && $sessionTicketId !== ''
+            && hash_equals($sessionTicketId, (string) $ticket->id);
+
         abort_unless(
-            (string) $ticket->reservation->user_id
-                === (string) $request->user()->id,
+            $isAuthenticatedOwner || $isGuestOwner,
             403,
-            'Vous ne pouvez pas consulter le billet d’un autre client.'
+            'Vous ne pouvez pas consulter ce billet.'
         );
 
-        // Le QR Code contient une URL de vérification, pas les données personnelles.
+        // Le QR Code contient une URL et un jeton opaque, pas les données personnelles.
         $verificationUrl = route('tickets.verify', [
             'token' => $ticket->qr_token,
         ]);
@@ -44,7 +56,7 @@ class TicketController extends Controller
     }
 
     /**
-     * Vérifier un billet : accès réservé à l'agence concernée
+     * Afficher le résultat du scan à l'agence propriétaire du voyage
      * ou au chauffeur affecté au voyage.
      */
     public function verify(Request $request, string $token)
@@ -61,7 +73,9 @@ class TicketController extends Controller
             'reservation.reservationSeats.seat',
         ]);
 
-        $this->authorizeStaff($request->user(), $ticket);
+        $user = $request->user();
+        abort_unless($user instanceof User, 403);
+        $this->authorizeStaff($user, $ticket);
 
         return view('tickets.verify', [
             'ticket' => $ticket,
@@ -69,11 +83,12 @@ class TicketController extends Controller
     }
 
     /**
-     * Marquer un billet valide comme utilisé.
+     * Marquer un billet valide comme utilisé. Le verrouillage empêche deux
+     * contrôles simultanés d'accepter silencieusement le même billet.
      */
     public function check(Request $request, string $token)
     {
-        DB::transaction(function () use ($request, $token) {
+        DB::transaction(function () use ($request, $token): void {
             $ticket = Ticket::query()
                 ->where('qr_token', $token)
                 ->lockForUpdate()
@@ -84,7 +99,9 @@ class TicketController extends Controller
                 'reservation.trip.driver.user',
             ]);
 
-            $this->authorizeStaff($request->user(), $ticket);
+            $user = $request->user();
+            abort_unless($user instanceof User, 403);
+            $this->authorizeStaff($user, $ticket);
 
             abort_unless(
                 $ticket->status === 'valid',
@@ -104,8 +121,8 @@ class TicketController extends Controller
     }
 
     /**
-     * Autoriser uniquement l'agence propriétaire du voyage
-     * ou le chauffeur affecté à ce voyage.
+     * Seuls l'agence propriétaire du voyage et le chauffeur affecté
+     * peuvent consulter le détail de vérification et valider le billet.
      */
     private function authorizeStaff(User $user, Ticket $ticket): void
     {
@@ -115,17 +132,14 @@ class TicketController extends Controller
         ]);
 
         $trip = $ticket->reservation->trip;
-
         $allowed = false;
 
         if ($user->isAgency()) {
             $allowed = $trip->agency !== null
-                && (string) $trip->agency->owner_user_id
-                === (string) $user->id;
+                && (string) $trip->agency->owner_user_id === (string) $user->id;
         } elseif ($user->isDriver()) {
             $allowed = $trip->driver !== null
-                && (string) $trip->driver->user_id
-                === (string) $user->id;
+                && (string) $trip->driver->user_id === (string) $user->id;
         }
 
         abort_unless(

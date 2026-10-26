@@ -13,30 +13,20 @@ use Illuminate\Support\Facades\Route;
 | Accueil public
 |--------------------------------------------------------------------------
 */
-
-Route::get('/', [TripController::class, 'home'])
-    ->name('home');
+Route::get('/', [TripController::class, 'home'])->name('home');
 
 /*
 |--------------------------------------------------------------------------
 | Voyages publics
 |--------------------------------------------------------------------------
-| URL : /voyages
-| Noms : trips.index, trips.show
-|--------------------------------------------------------------------------
 */
-
 Route::prefix('voyages')
     ->name('trips.')
     ->controller(TripController::class)
     ->middleware('throttle:60,1')
     ->group(function (): void {
+        Route::get('/', 'index')->name('index');
 
-        // Liste et recherche des voyages
-        Route::get('/', 'index')
-            ->name('index');
-
-        // Détails d'un voyage identifié par UUID
         Route::get('/{trip}', 'show')
             ->whereUuid('trip')
             ->name('show');
@@ -44,65 +34,42 @@ Route::prefix('voyages')
 
 /*
 |--------------------------------------------------------------------------
-| Réservations et paiement
+| Réservation et paiement de démonstration
 |--------------------------------------------------------------------------
-| Ces routes nécessitent une connexion.
-| URL de base : /voyages/{trip}/reservation
-| Noms de base : reservations.*
+| Ce groupe accepte les visiteurs non connectés et les clients connectés.
+| Les contrôleurs vérifient la propriété de la réservation avec l'utilisateur
+| connecté ou l'identifiant conservé dans la session de réservation.
 |--------------------------------------------------------------------------
 */
-
-Route::middleware('auth')
-    ->prefix('voyages/{trip}/reservation')
+Route::prefix('voyages/{trip}/reservation')
     ->name('reservations.')
     ->group(function (): void {
-
-        // Afficher le plan des sièges
         Route::get('/', [ReservationController::class, 'create'])
             ->whereUuid('trip')
             ->middleware('throttle:30,1')
             ->name('create');
 
-        // Vérifier la sélection et verrouiller les sièges
-        Route::post('/selection', [
-            ReservationController::class,
-            'storeSelection',
-        ])
+        Route::post('/selection', [ReservationController::class, 'storeSelection'])
             ->whereUuid('trip')
             ->middleware('throttle:10,1')
             ->name('selection');
 
-        // Afficher le formulaire des passagers
-        Route::get('/passagers', [
-            ReservationController::class,
-            'passengers',
-        ])
+        Route::get('/passagers', [ReservationController::class, 'passengers'])
             ->whereUuid('trip')
             ->middleware('throttle:30,1')
             ->name('passengers');
 
-        // Enregistrer les informations des passagers
-        Route::post('/passagers', [
-            ReservationController::class,
-            'storePassengers',
-        ])
+        Route::post('/passagers', [ReservationController::class, 'storePassengers'])
             ->whereUuid('trip')
             ->middleware('throttle:10,1')
             ->name('passengers.store');
 
-        // Afficher la page de paiement simulé
-        Route::get('/paiement', [
-            PaymentController::class,
-            'show',
-        ])
+        Route::get('/paiement', [PaymentController::class, 'show'])
             ->whereUuid('trip')
+            ->middleware('throttle:30,1')
             ->name('payment.show');
 
-        // Simuler un paiement réussi ou échoué
-        Route::post('/paiement/simulation', [
-            PaymentController::class,
-            'simulate',
-        ])
+        Route::post('/paiement/simulation', [PaymentController::class, 'simulate'])
             ->whereUuid('trip')
             ->middleware('throttle:10,1')
             ->name('payment.simulate');
@@ -110,52 +77,36 @@ Route::middleware('auth')
 
 /*
 |--------------------------------------------------------------------------
-| Billets et vérification par QR Code
+| Affichage du billet
 |--------------------------------------------------------------------------
-| IMPORTANT : ce groupe est indépendant du groupe de réservation.
-| Les billets ont leur propre URL et leurs propres noms de routes.
+| Route publique au niveau du middleware seulement : TicketController vérifie
+| que le compte connecté possède le billet ou que la session invitée contient
+| l'identifiant exact du billet. Un UUID seul ne donne donc pas accès au billet.
 |--------------------------------------------------------------------------
 */
+Route::get('/billets/{ticket}', [TicketController::class, 'show'])
+    ->whereUuid('ticket')
+    ->name('tickets.show');
 
+/*
+|--------------------------------------------------------------------------
+| Vérification et contrôle du QR Code : personnel connecté uniquement
+|--------------------------------------------------------------------------
+*/
 Route::middleware('auth')->group(function (): void {
-
-    // Afficher le billet du client propriétaire
-    Route::get('/billets/{ticket}', [
-        TicketController::class,
-        'show',
-    ])
-        ->whereUuid('ticket')
-        ->name('tickets.show');
-
-    // Afficher les informations de vérification du billet
-    Route::get('/verification-billet/{token}', [
-        TicketController::class,
-        'verify',
-    ])
+    Route::get('/verification-billet/{token}', [TicketController::class, 'verify'])
         ->whereUuid('token')
         ->name('tickets.verify');
 
-    // Confirmer le contrôle et marquer le billet comme utilisé
-    Route::post('/verification-billet/{token}', [
-        TicketController::class,
-        'check',
-    ])
+    Route::post('/verification-billet/{token}', [TicketController::class, 'check'])
         ->whereUuid('token')
         ->middleware('throttle:20,1')
         ->name('tickets.check');
 
-    // Tableau de bord client
-    Route::get('/client/dashboard', [
-        DashboardController::class,
-        'index',
-    ])
+    Route::get('/client/dashboard', [DashboardController::class, 'index'])
         ->name('client.dashboard');
 
-    // Déconnexion
-    Route::post('/deconnexion', [
-        ClientAuthController::class,
-        'logout',
-    ])
+    Route::post('/deconnexion', [ClientAuthController::class, 'logout'])
         ->name('logout');
 });
 
@@ -163,39 +114,19 @@ Route::middleware('auth')->group(function (): void {
 |--------------------------------------------------------------------------
 | Connexion et inscription
 |--------------------------------------------------------------------------
-| Routes accessibles aux visiteurs non connectés.
-|--------------------------------------------------------------------------
 */
-
 Route::middleware('guest')->group(function (): void {
-
-    // Formulaire de connexion
-    Route::get('/connexion', [
-        ClientAuthController::class,
-        'showLogin',
-    ])
+    Route::get('/connexion', [ClientAuthController::class, 'showLogin'])
         ->name('login');
 
-    // Traitement de la connexion
-    Route::post('/connexion', [
-        ClientAuthController::class,
-        'login',
-    ])
+    Route::post('/connexion', [ClientAuthController::class, 'login'])
         ->middleware('throttle:10,1')
         ->name('login.store');
 
-    // Formulaire d'inscription
-    Route::get('/inscription', [
-        ClientAuthController::class,
-        'showRegister',
-    ])
+    Route::get('/inscription', [ClientAuthController::class, 'showRegister'])
         ->name('register');
 
-    // Traitement de l'inscription
-    Route::post('/inscription', [
-        ClientAuthController::class,
-        'register',
-    ])
+    Route::post('/inscription', [ClientAuthController::class, 'register'])
         ->middleware('throttle:5,1')
         ->name('register.store');
 });

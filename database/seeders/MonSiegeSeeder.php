@@ -14,428 +14,233 @@ use Illuminate\Support\Facades\DB;
 class MonSiegeSeeder extends Seeder
 {
     /**
-     * Exécuter les données de démonstration MonSiège.
+     * Prépare des données de démonstration pour le site public MonSiège.
+     *
+     * Ce seeder utilise updateOrCreate pour éviter de recréer les mêmes
+     * utilisateurs, véhicules, sièges et voyages à chaque exécution.
+     * À utiliser uniquement avec les données de démonstration, avant toute
+     * réservation réelle : les horaires des trois voyages de démo sont mis à jour.
      */
     public function run(): void
     {
-        DB::transaction(function () {
+        DB::transaction(function (): void {
+            $agencyUser = User::updateOrCreate(
+                ['email' => 'agence@monsiege.test'],
+                [
+                    'name' => 'MonSiège Transport',
+                    'phone' => '0320000000',
+                    'password' => 'password',
+                    'role' => 'agency',
+                ]
+            );
 
-            /*
-            |--------------------------------------------------------------------------
-            | 1. UTILISATEUR DE L'AGENCE
-            |--------------------------------------------------------------------------
-            */
+            $agency = Agency::updateOrCreate(
+                ['code' => 'MST'],
+                [
+                    'owner_user_id' => $agencyUser->id,
+                    'name' => 'MonSiège Transport',
+                    'phone' => '0320000000',
+                    'email' => 'agence@monsiege.test',
+                    'address' => 'Analakely',
+                    'city' => 'Antananarivo',
+                    'description' => 'Agence de démonstration pour MonSiège.',
+                    'status' => 'active',
+                ]
+            );
 
-            $agencyUser = User::create([
-                'name' => 'MonSiège Transport',
-                'email' => 'agence@monsiege.test',
-                'phone' => '0320000000',
-                'password' => 'password',
-                'role' => 'agency',
-            ]);
+            $driverUser = User::updateOrCreate(
+                ['email' => 'chauffeur@monsiege.test'],
+                [
+                    'name' => 'Jean Rakoto',
+                    'phone' => '0331000000',
+                    'password' => 'password',
+                    'role' => 'driver',
+                ]
+            );
 
+            $driver = Driver::updateOrCreate(
+                ['user_id' => $driverUser->id],
+                [
+                    'agency_id' => $agency->id,
+                    'license_number' => 'MAD-DL-00001',
+                    'license_expiry_date' => now()->addYears(2)->toDateString(),
+                    'status' => 'active',
+                    'notes' => 'Chauffeur de démonstration pour les tests MonSiège.',
+                ]
+            );
 
-            /*
-            |--------------------------------------------------------------------------
-            | 2. AGENCE
-            |--------------------------------------------------------------------------
-            */
+            $sprinter = Vehicle::updateOrCreate(
+                ['registration_number' => '1234 TAA'],
+                [
+                    'agency_id' => $agency->id,
+                    'brand' => 'Mercedes-Benz',
+                    'model' => 'Sprinter',
+                    'type' => 'minibus',
+                    'capacity' => 18,
+                    'status' => 'active',
+                    'description' => 'Mercedes-Benz Sprinter pour les trajets interurbains.',
+                ]
+            );
 
-            $agency = Agency::create([
-                'owner_user_id' => $agencyUser->id,
-                'name' => 'MonSiège Transport',
-                'code' => 'MST',
-                'phone' => '0320000000',
-                'email' => 'agence@monsiege.test',
-                'address' => 'Analakely',
-                'city' => 'Antananarivo',
-                'description' => 'Agence de transport et de réservation de places à Madagascar.',
-                'status' => 'active',
-            ]);
+            // 2 places à l'avant, puis 4 rangées de 4 places (18 au total).
+            $frontSeats = [
+                ['seat_number' => 'A1', 'row_number' => 0, 'column_number' => 1],
+                ['seat_number' => 'A2', 'row_number' => 0, 'column_number' => 2],
+            ];
 
+            foreach ($frontSeats as $seatData) {
+                Seat::updateOrCreate(
+                    [
+                        'vehicle_id' => $sprinter->id,
+                        'seat_number' => $seatData['seat_number'],
+                    ],
+                    $seatData + [
+                        'seat_type' => 'standard',
+                        'is_window' => true,
+                        'is_active' => true,
+                    ]
+                );
+            }
 
-            /*
-            |--------------------------------------------------------------------------
-            | 3. UTILISATEUR CHAUFFEUR
-            |--------------------------------------------------------------------------
-            */
-
-            $driverUser = User::create([
-                'name' => 'Jean Rakoto',
-                'email' => 'chauffeur@monsiege.test',
-                'phone' => '0331000000',
-                'password' => 'password',
-                'role' => 'driver',
-            ]);
-
-
-            /*
-            |--------------------------------------------------------------------------
-            | 4. CHAUFFEUR
-            |--------------------------------------------------------------------------
-            */
-
-            $driver = Driver::create([
-                'user_id' => $driverUser->id,
-                'agency_id' => $agency->id,
-                'license_number' => 'MAD-DL-00001',
-                'license_expiry_date' => now()->addYears(2),
-                'status' => 'active',
-                'notes' => 'Chauffeur de démonstration pour les tests MonSiège.',
-            ]);
-
-
-            /*
-            |--------------------------------------------------------------------------
-            | 5. PREMIER VÉHICULE : MERCEDES-BENZ SPRINTER
-            |--------------------------------------------------------------------------
-            |
-            | Configuration :
-            |
-            |                  AVANT
-            |
-            |              [ CHAUFFEUR ]
-            |                  🚗
-            |
-            |               A1      A2
-            |               💺      💺
-            |
-            |             01 02   03 04
-            |             05 06   07 08
-            |             09 10   11 12
-            |             13 14   15 16
-            |
-            |                  ARRIÈRE
-            |
-            | Chauffeur : non disponible
-            | Passagers : 18 sièges
-            |
-            */
-
-            $vehicle1 = Vehicle::create([
-                'agency_id' => $agency->id,
-                'registration_number' => '1234 TAA',
-                'brand' => 'Mercedes-Benz',
-                'model' => 'Sprinter',
-                'type' => 'minibus',
-                'capacity' => 18,
-                'status' => 'active',
-                'description' => 'Mercedes-Benz Sprinter confortable pour les trajets interurbains.',
-            ]);
-
-
-            /*
-            |--------------------------------------------------------------------------
-            | 6. DEUX SIÈGES PASSAGERS À L'AVANT
-            |--------------------------------------------------------------------------
-            */
-
-            Seat::create([
-                'vehicle_id' => $vehicle1->id,
-                'seat_number' => 'A1',
-                'row_number' => 0,
-                'column_number' => 1,
-                'seat_type' => 'standard',
-                'is_window' => true,
-                'is_active' => true,
-            ]);
-
-            Seat::create([
-                'vehicle_id' => $vehicle1->id,
-                'seat_number' => 'A2',
-                'row_number' => 0,
-                'column_number' => 2,
-                'seat_type' => 'standard',
-                'is_window' => true,
-                'is_active' => true,
-            ]);
-
-
-            /*
-            |--------------------------------------------------------------------------
-            | 7. QUATRE RANGÉES DE QUATRE SIÈGES
-            |--------------------------------------------------------------------------
-            |
-            | Rangée 1 : 01 02 | 03 04
-            | Rangée 2 : 05 06 | 07 08
-            | Rangée 3 : 09 10 | 11 12
-            | Rangée 4 : 13 14 | 15 16
-            |
-            */
-
-            $seatNumber = 1;
-
+            $number = 1;
             for ($row = 1; $row <= 4; $row++) {
-
                 for ($column = 1; $column <= 4; $column++) {
-
-                    Seat::create([
-                        'vehicle_id' => $vehicle1->id,
-                        'seat_number' => str_pad(
-                            (string) $seatNumber,
-                            2,
-                            '0',
-                            STR_PAD_LEFT
-                        ),
-                        'row_number' => $row,
-                        'column_number' => $column,
-                        'seat_type' => 'standard',
-                        'is_window' => in_array($column, [1, 4], true),
-                        'is_active' => true,
-                    ]);
-
-                    $seatNumber++;
+                    Seat::updateOrCreate(
+                        [
+                            'vehicle_id' => $sprinter->id,
+                            'seat_number' => str_pad((string) $number, 2, '0', STR_PAD_LEFT),
+                        ],
+                        [
+                            'row_number' => $row,
+                            'column_number' => $column,
+                            'seat_type' => 'standard',
+                            'is_window' => in_array($column, [1, 4], true),
+                            'is_active' => true,
+                        ]
+                    );
+                    $number++;
                 }
             }
 
+            $coaster = Vehicle::updateOrCreate(
+                ['registration_number' => '5678 TBB'],
+                [
+                    'agency_id' => $agency->id,
+                    'brand' => 'Toyota',
+                    'model' => 'Coaster',
+                    'type' => 'bus',
+                    'capacity' => 20,
+                    'status' => 'active',
+                    'description' => 'Toyota Coaster pour les trajets longue distance.',
+                ]
+            );
 
-            /*
-            |--------------------------------------------------------------------------
-            | 8. DEUXIÈME VÉHICULE : TOYOTA COASTER
-            |--------------------------------------------------------------------------
-            |
-            | 20 sièges :
-            | 5 rangées × 4 sièges
-            |
-            */
-
-            $vehicle2 = Vehicle::create([
-                'agency_id' => $agency->id,
-                'registration_number' => '5678 TBB',
-                'brand' => 'Toyota',
-                'model' => 'Coaster',
-                'type' => 'bus',
-                'capacity' => 20,
-                'status' => 'active',
-                'description' => 'Toyota Coaster destiné aux trajets longue distance.',
-            ]);
-
-
-            /*
-            |--------------------------------------------------------------------------
-            | 9. SIÈGES DU TOYOTA COASTER
-            |--------------------------------------------------------------------------
-            */
-
-            $seatNumber = 1;
-
+            $number = 1;
             for ($row = 1; $row <= 5; $row++) {
-
                 for ($column = 1; $column <= 4; $column++) {
-
-                    Seat::create([
-                        'vehicle_id' => $vehicle2->id,
-                        'seat_number' => str_pad(
-                            (string) $seatNumber,
-                            2,
-                            '0',
-                            STR_PAD_LEFT
-                        ),
-                        'row_number' => $row,
-                        'column_number' => $column,
-                        'seat_type' => 'standard',
-                        'is_window' => in_array($column, [1, 4], true),
-                        'is_active' => true,
-                    ]);
-
-                    $seatNumber++;
+                    Seat::updateOrCreate(
+                        [
+                            'vehicle_id' => $coaster->id,
+                            'seat_number' => str_pad((string) $number, 2, '0', STR_PAD_LEFT),
+                        ],
+                        [
+                            'row_number' => $row,
+                            'column_number' => $column,
+                            'seat_type' => 'standard',
+                            'is_window' => in_array($column, [1, 4], true),
+                            'is_active' => true,
+                        ]
+                    );
+                    $number++;
                 }
             }
 
+            // Une seule fiche de démonstration par itinéraire.
+            // Les dates sont placées dans le futur à chaque exécution.
+            $demoTrips = [
+                [
+                    'departure_city' => 'Antananarivo',
+                    'arrival_city' => 'Toamasina',
+                    'vehicle_id' => $sprinter->id,
+                    'departure_day_offset' => 1,
+                    'departure_time' => [7, 0],
+                    'arrival_time' => [12, 30],
+                    'price' => 35000,
+                    'image_path' => 'images/voyages/toamasina.jpeg',
+                    'notes' => 'Départ à 07h00. Merci d’arriver 30 minutes avant.',
+                ],
+                [
+                    'departure_city' => 'Antananarivo',
+                    'arrival_city' => 'Fianarantsoa',
+                    'vehicle_id' => $coaster->id,
+                    'departure_day_offset' => 3,
+                    'departure_time' => [6, 0],
+                    'arrival_time' => [14, 0],
+                    'price' => 50000,
+                    'image_path' => 'images/voyages/fianarantsoa.jpeg',
+                    'notes' => 'Voyage de démonstration vers les Hautes Terres.',
+                ],
+                [
+                    'departure_city' => 'Antananarivo',
+                    'arrival_city' => 'Toliara',
+                    'vehicle_id' => $coaster->id,
+                    'departure_day_offset' => 5,
+                    'departure_time' => [5, 0],
+                    'arrival_time' => [21, 0],
+                    'price' => 85000,
+                    'image_path' => 'images/voyages/toliara-rn7.jpeg',
+                    'notes' => 'Trajet de démonstration par la RN7. Horaires et tarif à confirmer par l’agence.',
+                ],
+            ];
 
-            /*
-            |--------------------------------------------------------------------------
-            | 10. VOYAGE : ANTANANARIVO → TOAMASINA
-            |--------------------------------------------------------------------------
-            */
+            foreach ($demoTrips as $data) {
+                $departureAt = now()->startOfDay()
+                    ->addDays($data['departure_day_offset'])
+                    ->setTime($data['departure_time'][0], $data['departure_time'][1]);
 
-            $tripToamasina = Trip::create([
-                'agency_id' => $agency->id,
-                'vehicle_id' => $vehicle1->id,
-                'driver_id' => $driver->id,
+                $arrivalAt = now()->startOfDay()
+                    ->addDays($data['departure_day_offset'])
+                    ->setTime($data['arrival_time'][0], $data['arrival_time'][1]);
 
-                'departure_city' => 'Antananarivo',
-                'arrival_city' => 'Toamasina',
+                Trip::updateOrCreate(
+                    [
+                        'departure_city' => $data['departure_city'],
+                        'arrival_city' => $data['arrival_city'],
+                    ],
+                    [
+                        'agency_id' => $agency->id,
+                        'vehicle_id' => $data['vehicle_id'],
+                        'driver_id' => $driver->id,
+                        'departure_address' => 'Gare routière, Antananarivo',
+                        'arrival_address' => 'Gare routière, ' . $data['arrival_city'],
+                        'departure_at' => $departureAt,
+                        'arrival_at' => $arrivalAt,
+                        'image_path' => $data['image_path'],
+                        'price' => $data['price'],
+                        'currency' => 'MGA',
+                        'status' => 'scheduled',
+                        'notes' => $data['notes'],
+                    ]
+                );
+            }
 
-                'departure_address' => 'Gare routière, Antananarivo',
-                'arrival_address' => 'Gare routière, Toamasina',
-
-                'departure_at' => now()
-                    ->addDay()
-                    ->setTime(7, 0),
-
-                'arrival_at' => now()
-                    ->addDay()
-                    ->setTime(12, 30),
-
-                'price' => 35000,
-                'currency' => 'MGA',
-
-                'status' => 'scheduled',
-
-                'notes' => 'Départ à 07h00. Merci d’arriver 30 minutes avant.',
-            ]);
-
-
-            /*
-            |--------------------------------------------------------------------------
-            | 11. VOYAGE : ANTANANARIVO → ANTSIRABE
-            |--------------------------------------------------------------------------
-            */
-
-            $tripAntsirabe = Trip::create([
-                'agency_id' => $agency->id,
-                'vehicle_id' => $vehicle1->id,
-                'driver_id' => $driver->id,
-
-                'departure_city' => 'Antananarivo',
-                'arrival_city' => 'Antsirabe',
-
-                'departure_address' => 'Gare routière, Antananarivo',
-                'arrival_address' => 'Gare routière, Antsirabe',
-
-                'departure_at' => now()
-                    ->addDays(2)
-                    ->setTime(8, 0),
-
-                'arrival_at' => now()
-                    ->addDays(2)
-                    ->setTime(12, 30),
-
-                'price' => 25000,
-                'currency' => 'MGA',
-
-                'status' => 'scheduled',
-
-                'notes' => 'Trajet direct Antananarivo → Antsirabe.',
-            ]);
-
-
-            /*
-            |--------------------------------------------------------------------------
-            | 12. VOYAGE : ANTANANARIVO → MAHAJANGA
-            |--------------------------------------------------------------------------
-            */
-
-            $tripMahajanga = Trip::create([
-                'agency_id' => $agency->id,
-                'vehicle_id' => $vehicle2->id,
-                'driver_id' => $driver->id,
-
-                'departure_city' => 'Antananarivo',
-                'arrival_city' => 'Mahajanga',
-
-                'departure_address' => 'Gare routière, Antananarivo',
-                'arrival_address' => 'Gare routière, Mahajanga',
-
-                'departure_at' => now()
-                    ->addDays(3)
-                    ->setTime(6, 30),
-
-                'arrival_at' => now()
-                    ->addDays(3)
-                    ->setTime(14, 30),
-
-                'price' => 30000,
-                'currency' => 'MGA',
-
-                'status' => 'scheduled',
-
-                'notes' => 'Trajet longue distance.',
-            ]);
-
-
-            /*
-            |--------------------------------------------------------------------------
-            | 13. UTILISATEUR CLIENT / RÉSERVATEUR
-            |--------------------------------------------------------------------------
-            */
-
-            $clientUser = User::create([
-                'name' => 'Fanantenana',
-                'email' => 'client@monsiege.test',
-                'phone' => '0341000000',
-                'password' => 'password',
-                'role' => 'client',
-            ]);
-
-
-            /*
-            |--------------------------------------------------------------------------
-            | 14. INFORMATIONS DANS LA CONSOLE
-            |--------------------------------------------------------------------------
-            */
-
-            $this->command->newLine();
-
-            $this->command->info('===========================================');
-            $this->command->info('     MONSIÈGE - SEEDER TERMINÉ');
-            $this->command->info('===========================================');
-
-            $this->command->info('');
-            $this->command->info('UTILISATEURS');
-            $this->command->info('Agence    : ' . $agencyUser->email);
-            $this->command->info('Chauffeur : ' . $driverUser->email);
-            $this->command->info('Client    : ' . $clientUser->email);
-            $this->command->info('Mot de passe : password');
-
-            $this->command->info('');
-
-            $this->command->info('AGENCE');
-            $this->command->info(
-                $agency->name . ' [' . $agency->code . ']'
+            User::updateOrCreate(
+                ['email' => 'client@monsiege.test'],
+                [
+                    'name' => 'Fanantenana',
+                    'phone' => '0341000000',
+                    'password' => 'password',
+                    'role' => 'client',
+                ]
             );
 
-            $this->command->info('');
-
-            $this->command->info('VÉHICULES');
-            $this->command->info(
-                'Sprinter : ' . $vehicle1->registration_number
-                    . ' - 18 sièges'
-            );
-
-            $this->command->info(
-                'Coaster  : ' . $vehicle2->registration_number
-                    . ' - 20 sièges'
-            );
-
-            $this->command->info('');
-
-            $this->command->info('SIÈGES CRÉÉS');
-            $this->command->info(
-                'Sprinter : 18'
-            );
-
-            $this->command->info(
-                'Coaster  : 20'
-            );
-
-            $this->command->info(
-                'Total     : 38'
-            );
-
-            $this->command->info('');
-
-            $this->command->info('VOYAGES');
-            $this->command->info(
-                'Antananarivo → Toamasina : 35 000 Ar'
-            );
-
-            $this->command->info(
-                'Antananarivo → Antsirabe : 25 000 Ar'
-            );
-
-            $this->command->info(
-                'Antananarivo → Mahajanga : 30 000 Ar'
-            );
-
-            $this->command->info('');
-
-            $this->command->info('===========================================');
-            $this->command->info('MonSiège est prêt pour les tests.');
-            $this->command->info('===========================================');
-
-            $this->command->newLine();
+            $this->command?->newLine();
+            $this->command?->info('MonSiège : données de démonstration prêtes.');
+            $this->command?->info('Agence : agence@monsiege.test / password');
+            $this->command?->info('Chauffeur : chauffeur@monsiege.test / password');
+            $this->command?->info('Client : client@monsiege.test / password');
+            $this->command?->info('Voyages : Toamasina, Fianarantsoa et Toliara (RN7).');
+            $this->command?->warn('Comptes et tarifs réservés à la démonstration locale.');
         });
     }
 }

@@ -2,14 +2,15 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Passenger;
 use App\Models\Reservation;
 use App\Models\ReservationSeat;
 use App\Models\Trip;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
-use App\Models\Passenger;
 
 class ReservationController extends Controller
 {
@@ -73,6 +74,7 @@ class ReservationController extends Controller
 
     /**
      * Validate the selected seats and lock them for ten minutes.
+     * Works for authenticated clients and visitors without an account.
      */
     public function storeSelection(Request $request, Trip $trip)
     {
@@ -113,7 +115,7 @@ class ReservationController extends Controller
             $result = DB::transaction(function () use ($request, $trip, $seatIds, $passengerCount) {
                 $now = now();
 
-                // Remove expired locks for this trip, freeing the unique trip/seat pair.
+                // Remove expired locks for this trip and expire their pending reservations.
                 $expiredRows = ReservationSeat::query()
                     ->where('trip_id', $trip->id)
                     ->where('status', 'locked')
@@ -141,14 +143,12 @@ class ReservationController extends Controller
                         ->update(['status' => 'expired']);
                 }
 
-                // Locate the reservation previously created by this visitor's session.
+                // Only reuse a reservation tied to this browser session and its current owner.
                 $previousId = $request->session()->get('monsiege.reservation_id');
                 $previousReservation = null;
 
                 if ($previousId) {
-                    $previousReservation = Reservation::query()
-                        ->whereKey($previousId)
-                        ->where('trip_id', $trip->id)
+                    $previousReservation = $this->sessionReservationQuery($request, $trip, $previousId)
                         ->lockForUpdate()
                         ->first();
 
@@ -162,7 +162,7 @@ class ReservationController extends Controller
                     }
                 }
 
-                // Re-check requested seats against current database state.
+                // Re-check requested seats against the current database state.
                 $occupiedQuery = ReservationSeat::query()
                     ->where('trip_id', $trip->id)
                     ->whereIn('seat_id', $seatIds)
@@ -184,7 +184,7 @@ class ReservationController extends Controller
                     ];
                 }
 
-                // Release the visitor's previous temporary selection on this trip.
+                // Release this visitor's previous temporary selection on the same trip.
                 if ($previousReservation) {
                     ReservationSeat::query()
                         ->where('reservation_id', $previousReservation->id)
@@ -258,10 +258,8 @@ class ReservationController extends Controller
     {
         $reservationId = $request->session()->get('monsiege.reservation_id');
 
-        $reservation = Reservation::query()
+        $reservation = $this->sessionReservationQuery($request, $trip, $reservationId)
             ->with(['reservationSeats.seat', 'trip'])
-            ->whereKey($reservationId)
-            ->where('trip_id', $trip->id)
             ->first();
 
         if (
@@ -286,7 +284,7 @@ class ReservationController extends Controller
             return redirect()
                 ->route('reservations.create', ['trip' => $trip])
                 ->withErrors([
-                    'reservation' => 'Votre sélection a expiré. Veuillez choisir de nouveau vos sièges.',
+                    'reservation' => 'Votre sélection a expiré ou n’est plus accessible. Veuillez choisir de nouveau vos sièges.',
                 ]);
         }
 
@@ -299,7 +297,7 @@ class ReservationController extends Controller
         $seats = $reservation->reservationSeats
             ->pluck('seat')
             ->filter()
-            ->sortBy(fn($seat) => sprintf(
+            ->sortBy(fn ($seat) => sprintf(
                 '%04d-%04d',
                 $seat->row_number,
                 $seat->column_number
@@ -323,20 +321,15 @@ class ReservationController extends Controller
         ]);
     }
 
-
     /**
-     * Enregistrer les passagers avant le paiement.
+     * Save passenger details before payment. Guests are allowed because the reservation
+     * is identified by the server-side session and has a nullable user_id.
      */
     public function storePassengers(Request $request, Trip $trip)
     {
-        $reservationId = $request->session()->get(
-            'monsiege.reservation_id'
-        );
+        $reservationId = $request->session()->get('monsiege.reservation_id');
 
-        $reservation = Reservation::query()
-            ->whereKey($reservationId)
-            ->where('trip_id', $trip->id)
-            ->where('user_id', $request->user()->id)
+        $reservation = $this->sessionReservationQuery($request, $trip, $reservationId)
             ->first();
 
         if (
@@ -345,10 +338,23 @@ class ReservationController extends Controller
             || !$reservation->expires_at
             || $reservation->expires_at->isPast()
         ) {
+            if ($reservation && $reservation->status === 'pending') {
+                DB::transaction(function () use ($reservation) {
+                    ReservationSeat::query()
+                        ->where('reservation_id', $reservation->id)
+                        ->where('status', 'locked')
+                        ->delete();
+
+                    $reservation->update(['status' => 'expired']);
+                });
+            }
+
+            $request->session()->forget('monsiege.reservation_id');
+
             return redirect()
                 ->route('reservations.create', ['trip' => $trip])
                 ->withErrors([
-                    'reservation' => 'Votre réservation a expiré. Veuillez recommencer.',
+                    'reservation' => 'Votre réservation a expiré ou n’est plus accessible. Veuillez recommencer.',
                 ]);
         }
 
@@ -395,42 +401,30 @@ class ReservationController extends Controller
             ],
         ]);
 
-        DB::transaction(function () use (
-            $reservation,
-            $validated
-        ) {
-            $reservation = Reservation::query()
-                ->whereKey($reservation->id)
+        DB::transaction(function () use ($request, $trip, $reservation, $validated) {
+            // Re-check both session scope/ownership and reservation status under a row lock.
+            $lockedReservation = $this->sessionReservationQuery($request, $trip, $reservation->id)
                 ->lockForUpdate()
                 ->firstOrFail();
 
             if (
-                $reservation->status !== 'pending'
-                || !$reservation->expires_at
-                || $reservation->expires_at->isPast()
+                $lockedReservation->status !== 'pending'
+                || !$lockedReservation->expires_at
+                || $lockedReservation->expires_at->isPast()
             ) {
-                abort(409, 'La réservation a expiré.');
+                abort(409, 'La réservation a expiré. Veuillez recommencer.');
             }
 
-            // Remplacer les informations précédentes si le formulaire
-            // est envoyé une nouvelle fois avant le paiement.
-            $reservation->passengers()->delete();
+            // Replace previously entered passenger data if the form is submitted again.
+            $lockedReservation->passengers()->delete();
 
-            foreach (
-                $validated['first_name'] as $index => $firstName
-            ) {
+            foreach ($validated['first_name'] as $index => $firstName) {
                 Passenger::create([
-                    'reservation_id' => $reservation->id,
+                    'reservation_id' => $lockedReservation->id,
                     'first_name' => trim($firstName),
-                    'last_name' => trim(
-                        $validated['last_name'][$index]
-                    ),
-                    'phone' => trim(
-                        $validated['phone'][$index]
-                    ),
-                    'email' => filled(
-                        $validated['email'][$index] ?? null
-                    )
+                    'last_name' => trim($validated['last_name'][$index]),
+                    'phone' => trim($validated['phone'][$index]),
+                    'email' => filled($validated['email'][$index] ?? null)
                         ? $validated['email'][$index]
                         : null,
                     'is_primary' => $index === 0,
@@ -441,5 +435,33 @@ class ReservationController extends Controller
         return redirect()->route('reservations.payment.show', [
             'trip' => $trip,
         ]);
+    }
+
+    /**
+     * Scope a reservation to the current trip, the browser's session ID, and the
+     * authenticated owner (if any). A visitor can only continue a guest reservation
+     * whose user_id is NULL. The session ID is never accepted from request input.
+     */
+    private function sessionReservationQuery(
+        Request $request,
+        Trip $trip,
+        mixed $reservationId
+    ): Builder {
+        $query = Reservation::query()
+            ->whereKey($reservationId)
+            ->where('trip_id', $trip->id);
+
+        $user = $request->user();
+
+        if ($user) {
+            $query->where(function (Builder $ownerQuery) use ($user) {
+                $ownerQuery->whereNull('user_id')
+                    ->orWhere('user_id', $user->id);
+            });
+        } else {
+            $query->whereNull('user_id');
+        }
+
+        return $query;
     }
 }

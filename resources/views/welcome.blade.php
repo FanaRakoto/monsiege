@@ -2,6 +2,38 @@
 
 @section('title', 'MonSiège - Réservez votre voyage simplement')
 
+@push('head')
+    {{-- Importation de la police Inter --}}
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    
+    <style>
+        .font-inter { font-family: 'Inter', sans-serif; }
+        
+        /* Animation de flottement infini pour l'image hero */
+        @keyframes float {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-15px); }
+            100% { transform: translateY(0px); }
+        }
+        .animate-float {
+            animation: float 6s ease-in-out infinite;
+        }
+
+        /* Classes pour l'apparition au scroll */
+        .scroll-reveal {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.8s cubic-bezier(0.5, 0, 0, 1);
+        }
+        .scroll-reveal.is-revealed {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    </style>
+@endpush
+
 @section('content')
 
 @php
@@ -15,10 +47,8 @@
 
 {{-- =========================================================
      HERO MONSIÈGE
-     Le logo et son chemin sont définis dans layouts.app : ils ne
-     sont volontairement pas modifiés dans cette vue.
 ========================================================= --}}
-<section id="accueil" class="relative isolate overflow-hidden bg-[#073F30]">
+<section id="accueil" class="relative isolate overflow-hidden bg-[#073F30] font-inter">
     <div class="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
         <div class="absolute -right-40 -top-40 h-[34rem] w-[34rem] rounded-full bg-[#F47C20]/20 blur-3xl"></div>
         <div class="absolute -bottom-48 -left-36 h-[32rem] w-[32rem] rounded-full bg-emerald-300/15 blur-3xl"></div>
@@ -27,61 +57,95 @@
     </div>
 
     <div class="relative mx-auto max-w-7xl px-4 pb-14 pt-12 sm:px-6 sm:pb-20 sm:pt-16 lg:px-8 lg:pb-24 lg:pt-20">
-        <div class="max-w-3xl">
-            <div class="hr-rise inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-4 py-2 text-xs font-bold uppercase tracking-[0.18em] text-white/90 shadow-sm backdrop-blur" style="--d: 80ms">
-                <span class="h-2 w-2 rounded-full bg-[#F47C20] shadow-[0_0_0_4px_rgba(244,124,32,0.15)]"></span>
-                Votre réservation, en toute simplicité
-            </div>
+        
+        {{-- Grille Principale Hero (Texte à gauche, Image à droite) --}}
+        <div class="grid gap-12 lg:grid-cols-2 lg:items-center">
+            
+            {{-- Colonne de Gauche : Contenu --}}
+            <div class="max-w-3xl">
+                <div class="hr-rise inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-4 py-2 text-xs font-bold uppercase tracking-[0.18em] text-white/90 shadow-sm backdrop-blur" style="--d: 80ms">
+                    <span class="h-2 w-2 animate-pulse rounded-full bg-[#F47C20] shadow-[0_0_0_4px_rgba(244,124,32,0.15)]"></span>
+                    Votre réservation, en toute simplicité
+                </div>
 
-            <h1 class="ht-title mt-7 text-4xl leading-[1.08] tracking-tight text-white sm:text-5xl lg:text-6xl xl:text-7xl" style="--d: 140ms">
-                <span class="sr-only">Votre prochain voyage commence ici.</span>
-                <span class="block" aria-hidden="true">
-                    <span class="ht-mask"><span class="ht-word ht-white" style="--i: 0">Votre</span></span>
-                    <span class="ht-mask"><span class="ht-word ht-white" style="--i: 1">prochain</span></span>
-                    <span class="ht-mask"><span class="ht-word ht-white" style="--i: 2">voyage</span></span>
-                </span>
-                <span class="mt-1 block" aria-hidden="true">
-                    <span class="ht-mask"><span class="ht-word ht-grad" style="--i: 3; --sh: 0s">commence</span></span>
-                    <span class="ht-ici">
-                        <span class="ht-mask"><span class="ht-word ht-grad" style="--i: 4; --sh: -1.4s">ici.</span></span>
-                        <svg class="ht-road" viewBox="0 0 120 14" fill="none" aria-hidden="true">
-                            <path class="ht-road-line" pathLength="1" d="M2 9 C 20 2, 38 15, 58 8 S 98 3, 114 8" stroke="#F47C20" stroke-width="4" stroke-linecap="round" />
-                            <path class="ht-road-dash" d="M2 9 C 20 2, 38 15, 58 8 S 98 3, 114 8" stroke="#FFFFFF" stroke-width="0.9" stroke-linecap="round" />
-                            <g class="ht-pin">
-                                <circle class="ht-pin-ring" cx="114" cy="8" r="2.6" stroke="#FFAC67" stroke-width="0.8" />
-                                <circle cx="114" cy="8" r="2.6" fill="#FFAC67" stroke="#FFFFFF" stroke-width="0.8" />
-                            </g>
-                        </svg>
+                <h1 class="ht-title mt-7 text-4xl leading-[1.08] tracking-tight text-white sm:text-5xl lg:text-6xl xl:text-7xl" style="--d: 200ms">
+                    <span class="sr-only">Votre prochain voyage commence ici.</span>
+                    <span class="block" aria-hidden="true">
+                        <span class="ht-mask"><span class="ht-word ht-white" style="--i: 0">Votre</span></span>
+                        <span class="ht-mask"><span class="ht-word ht-white" style="--i: 1">prochain</span></span>
+                        <span class="ht-mask"><span class="ht-word ht-white" style="--i: 2">voyage</span></span>
                     </span>
-                </span>
-            </h1>
+                    <span class="mt-1 block" aria-hidden="true">
+                        <span class="ht-mask"><span class="ht-word ht-grad" style="--i: 3; --sh: 0s">commence</span></span>
+                        <span class="ht-ici">
+                            <span class="ht-mask"><span class="ht-word ht-grad" style="--i: 4; --sh: -1.4s">ici.</span></span>
+                            <svg class="ht-road" viewBox="0 0 120 14" fill="none" aria-hidden="true">
+                                <path class="ht-road-line" pathLength="1" d="M2 9 C 20 2, 38 15, 58 8 S 98 3, 114 8" stroke="#F47C20" stroke-width="4" stroke-linecap="round" />
+                                <path class="ht-road-dash" d="M2 9 C 20 2, 38 15, 58 8 S 98 3, 114 8" stroke="#FFFFFF" stroke-width="0.9" stroke-linecap="round" />
+                                <g class="ht-pin">
+                                    <circle class="ht-pin-ring" cx="114" cy="8" r="2.6" stroke="#FFAC67" stroke-width="0.8" />
+                                    <circle cx="114" cy="8" r="2.6" fill="#FFAC67" stroke="#FFFFFF" stroke-width="0.8" />
+                                </g>
+                            </svg>
+                        </span>
+                    </span>
+                </h1>
 
-            <p class="hr-rise mt-6 max-w-2xl text-base leading-8 text-white/80 sm:text-lg" style="--d: 240ms">
-                Trouvez votre trajet, choisissez votre place et préparez votre départ en toute simplicité.
-                Avec MonSiège, voyager à Madagascar devient plus pratique.
-            </p>
+                <p class="hr-rise mt-6 max-w-2xl text-base leading-8 text-white/80 sm:text-lg" style="--d: 350ms">
+                    Trouvez votre trajet, choisissez votre place et préparez votre départ en toute simplicité.
+                    Avec MonSiège, voyager à Madagascar devient plus pratique.
+                </p>
 
-            <div class="hr-rise mt-8 flex flex-wrap gap-3" style="--d: 360ms">
-                <a href="#recherche" class="group inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-[#F47C20] px-6 py-3.5 text-sm font-extrabold text-white shadow-lg shadow-orange-950/25 transition duration-300 hover:-translate-y-0.5 hover:bg-orange-500 hover:shadow-xl active:scale-[0.98]">
-                    Trouver un voyage
-                    <svg class="h-5 w-5 transition-transform duration-300 group-hover:translate-x-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14m-6-6 6 6-6 6" />
-                    </svg>
-                </a>
-                <a href="#voyages" class="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl border border-white/25 bg-white/10 px-6 py-3.5 text-sm font-bold text-white backdrop-blur transition duration-300 hover:-translate-y-0.5 hover:border-white/40 hover:bg-white/20 active:scale-[0.98]">
-                    Découvrir les trajets
-                </a>
+                <div class="hr-rise mt-8 flex flex-wrap gap-3" style="--d: 500ms">
+                    <a href="#recherche" class="group inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-[#F47C20] px-6 py-3.5 text-sm font-extrabold text-white shadow-lg shadow-orange-950/25 transition-all duration-300 hover:-translate-y-1 hover:bg-orange-500 hover:shadow-xl active:scale-95">
+                        Trouver un voyage
+                        <svg class="h-5 w-5 transition-transform duration-300 group-hover:translate-x-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14m-6-6 6 6-6 6" />
+                        </svg>
+                    </a>
+                    <a href="#voyages" class="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl border border-white/25 bg-white/10 px-6 py-3.5 text-sm font-bold text-white backdrop-blur transition-all duration-300 hover:-translate-y-1 hover:border-white/40 hover:bg-white/20 active:scale-95">
+                        Découvrir les trajets
+                    </a>
+                </div>
+
+                <ul class="hr-rise mt-8 flex flex-wrap gap-x-6 gap-y-3 text-sm font-medium text-white/90" style="--d: 650ms">
+                    <li class="inline-flex items-center gap-2"><span class="flex h-5 w-5 items-center justify-center rounded-full bg-white/15 text-[#FFAC67]" aria-hidden="true">✓</span>Choix du siège</li>
+                    <li class="inline-flex items-center gap-2"><span class="flex h-5 w-5 items-center justify-center rounded-full bg-white/15 text-[#FFAC67]" aria-hidden="true">✓</span>Prix en Ariary</li>
+                    <li class="inline-flex items-center gap-2"><span class="flex h-5 w-5 items-center justify-center rounded-full bg-white/15 text-[#FFAC67]" aria-hidden="true">✓</span>Billet numérique</li>
+                </ul>
             </div>
 
-            <ul class="hr-rise mt-8 flex flex-wrap gap-x-6 gap-y-3 text-sm font-medium text-white/90" style="--d: 480ms">
-                <li class="inline-flex items-center gap-2"><span class="flex h-5 w-5 items-center justify-center rounded-full bg-white/15 text-[#FFAC67]" aria-hidden="true">✓</span>Choix du siège</li>
-                <li class="inline-flex items-center gap-2"><span class="flex h-5 w-5 items-center justify-center rounded-full bg-white/15 text-[#FFAC67]" aria-hidden="true">✓</span>Prix en Ariary</li>
-                <li class="inline-flex items-center gap-2"><span class="flex h-5 w-5 items-center justify-center rounded-full bg-white/15 text-[#FFAC67]" aria-hidden="true">✓</span>Billet numérique</li>
-            </ul>
+            {{-- Colonne de Droite : Image Hero (Animation infinie) --}}
+            <div class="hr-rise hidden justify-center lg:flex" style="--d: 800ms">
+                <div class="relative w-full max-w-md">
+                    {{-- Formes décoratives --}}
+                    <div class="absolute -inset-4 rounded-[2.5rem] bg-gradient-to-tr from-[#F47C20]/30 to-emerald-400/20 blur-2xl"></div>
+                    
+                    {{-- Image avec flottement infini --}}
+                    <img 
+                        src="{{ asset('images/hero/hero.jpeg') }}" 
+                        alt="Voyage à Madagascar" 
+                        class="animate-float relative rounded-[2rem] border border-white/20 object-cover shadow-2xl"
+                    >
+                    
+                    {{-- Badge flottant --}}
+                    <div class="absolute -bottom-6 -left-6 rounded-2xl border border-white/10 bg-white/90 p-4 shadow-xl backdrop-blur-md">
+                        <div class="flex items-center gap-3">
+                            <div class="flex size-10 items-center justify-center rounded-full bg-emerald-100 text-[#0B6E4F]">
+                                <svg class="size-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" /></svg>
+                            </div>
+                            <div>
+                                <p class="text-xs font-bold text-slate-500">Paiement</p>
+                                <p class="text-sm font-black text-[#0B6E4F]">100% Sécurisé</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
 
         {{-- Barre de recherche --}}
-        <div id="recherche" class="hr-rise mt-12 scroll-mt-28 sm:mt-14 lg:mt-16" style="--d: 620ms">
+        <div id="recherche" class="hr-rise mt-12 scroll-mt-28 sm:mt-14 lg:mt-20" style="--d: 950ms">
             <div class="hr-glow rounded-[1.8rem] p-[1px] shadow-2xl shadow-emerald-950/30" data-glow>
                 <div class="relative rounded-[1.75rem] bg-white p-3 sm:p-4">
                     <form action="{{ route('trips.index') }}" method="GET" class="grid gap-2 md:grid-cols-2 xl:grid-cols-[2.2fr_1fr_1.05fr_auto] xl:gap-0">
@@ -140,7 +204,7 @@
 
                         {{-- Bouton rechercher --}}
                         <div class="flex md:col-span-2 xl:col-span-1 xl:pl-2">
-                            <button type="submit" class="hr-shine group relative isolate flex min-h-[72px] w-full items-center justify-center gap-3 overflow-hidden rounded-2xl bg-gradient-to-br from-[#F47C20] to-[#E0640A] px-7 text-base font-extrabold text-white shadow-lg shadow-orange-600/30 transition duration-300 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-orange-600/40 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#F47C20] active:scale-[0.98] xl:w-auto">
+                            <button type="submit" class="hr-shine group relative isolate flex min-h-[72px] w-full items-center justify-center gap-3 overflow-hidden rounded-2xl bg-gradient-to-br from-[#F47C20] to-[#E0640A] px-7 text-base font-extrabold text-white shadow-lg shadow-orange-600/30 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-orange-600/40 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#F47C20] active:scale-95 xl:w-auto">
                                 <svg class="size-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><circle cx="10.8" cy="10.8" r="6.8" /><path stroke-linecap="round" d="m16 16 4.5 4.5" /></svg>
                                 Rechercher
                                 <svg class="-ml-1 size-5 transition-transform duration-300 group-hover:translate-x-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14m-6-6 6 6-6 6" /></svg>
@@ -172,17 +236,17 @@
                 </div>
             </div>
 
-            {{-- Raccourcis populaires : les attributs data-* sont conservés pour le JavaScript existant. --}}
+            {{-- Raccourcis populaires --}}
             <div class="mt-5 flex flex-wrap items-center gap-2 text-sm">
                 <span class="mr-1 font-medium text-white/80">Trajets populaires :</span>
                 @foreach ($heroRoutes as [$routeFrom, $routeTo])
-                    <button type="button" data-from="{{ $routeFrom }}" data-to="{{ $routeTo }}" class="rounded-full border border-white/25 bg-white/10 px-4 py-2 font-semibold text-white backdrop-blur transition hover:-translate-y-0.5 hover:border-white/50 hover:bg-white/25 active:scale-95">
+                    <button type="button" data-from="{{ $routeFrom }}" data-to="{{ $routeTo }}" class="rounded-full border border-white/25 bg-white/10 px-4 py-2 font-semibold text-white backdrop-blur transition-all duration-300 hover:-translate-y-1 hover:border-white/50 hover:bg-white/25 active:scale-95">
                         {{ $routeFrom }} → {{ $routeTo }}
                     </button>
                 @endforeach
                 <span class="mx-1 hidden h-5 w-px bg-white/25 sm:block" aria-hidden="true"></span>
-                <button type="button" data-day="0" class="rounded-full border border-white/25 bg-white/10 px-4 py-2 font-semibold text-white backdrop-blur transition hover:-translate-y-0.5 hover:border-white/50 hover:bg-white/25 active:scale-95">Aujourd'hui</button>
-                <button type="button" data-day="1" class="rounded-full border border-white/25 bg-white/10 px-4 py-2 font-semibold text-white backdrop-blur transition hover:-translate-y-0.5 hover:border-white/50 hover:bg-white/25 active:scale-95">Demain</button>
+                <button type="button" data-day="0" class="rounded-full border border-white/25 bg-white/10 px-4 py-2 font-semibold text-white backdrop-blur transition-all duration-300 hover:-translate-y-1 hover:border-white/50 hover:bg-white/25 active:scale-95">Aujourd'hui</button>
+                <button type="button" data-day="1" class="rounded-full border border-white/25 bg-white/10 px-4 py-2 font-semibold text-white backdrop-blur transition-all duration-300 hover:-translate-y-1 hover:border-white/50 hover:bg-white/25 active:scale-95">Demain</button>
             </div>
         </div>
     </div>
@@ -191,7 +255,7 @@
 {{-- =========================================================
      TROIS PROCHAINS VOYAGES
 ========================================================= --}}
-<section id="voyages" class="relative overflow-hidden bg-slate-50 py-16 sm:py-20">
+<section id="voyages" class="scroll-reveal relative overflow-hidden bg-slate-50 py-16 sm:py-20">
     <div class="pointer-events-none absolute -right-28 top-10 h-72 w-72 rounded-full bg-emerald-100/70 blur-3xl" aria-hidden="true"></div>
     <div class="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div class="flex flex-col justify-between gap-5 sm:flex-row sm:items-end">
@@ -202,7 +266,7 @@
                 <h2 class="mt-3 text-3xl font-black tracking-tight text-[#1E293B] sm:text-4xl">Les prochains départs</h2>
                 <p class="mt-3 max-w-xl leading-7 text-slate-600">Découvrez les voyages disponibles et choisissez le trajet qui vous convient.</p>
             </div>
-            <a href="/voyages" class="group inline-flex w-fit items-center gap-2 rounded-xl border border-[#0B6E4F]/15 bg-white px-5 py-3 text-sm font-extrabold text-[#0B6E4F] shadow-sm transition hover:-translate-y-0.5 hover:border-[#0B6E4F]/30 hover:shadow-md">
+            <a href="/voyages" class="group inline-flex w-fit items-center gap-2 rounded-xl border border-[#0B6E4F]/15 bg-white px-5 py-3 text-sm font-extrabold text-[#0B6E4F] shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-[#0B6E4F]/30 hover:shadow-md active:scale-95">
                 Voir tous les voyages
                 <svg class="size-4 transition-transform group-hover:translate-x-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14m-6-6 6 6-6 6" /></svg>
             </a>
@@ -223,7 +287,7 @@
                     };
                     $tripImage = $trip->image_path ?: $fallbackImage;
                 @endphp
-                <article class="group flex h-full flex-col overflow-hidden rounded-[1.6rem] border border-slate-200/80 bg-white shadow-sm transition duration-300 hover:-translate-y-1.5 hover:border-emerald-200 hover:shadow-[0_22px_55px_-25px_rgba(11,110,79,0.32)]">
+                <article class="group flex h-full flex-col overflow-hidden rounded-[1.6rem] border border-slate-200/80 bg-white shadow-sm transition-all duration-300 hover:-translate-y-1.5 hover:border-emerald-200 hover:shadow-[0_22px_55px_-25px_rgba(11,110,79,0.32)] active:scale-[0.98]">
                     {{-- Photo illustrative du trajet --}}
                     <div class="relative h-44 overflow-hidden bg-slate-100 sm:h-48">
                         <img
@@ -291,7 +355,7 @@
                             </span>
                         </div>
 
-                        <a href="{{ route('reservations.create', ['trip' => $trip, 'passengers' => request('passengers', 1)]) }}" class="group/button mt-6 inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-xl bg-[#F47C20] px-5 py-3 text-sm font-extrabold text-white shadow-sm shadow-orange-900/10 transition duration-300 hover:-translate-y-0.5 hover:bg-[#DE6810] hover:shadow-md focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#F47C20] active:scale-[0.99]">
+                        <a href="{{ route('reservations.create', ['trip' => $trip, 'passengers' => request('passengers', 1)]) }}" class="group/button mt-6 inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-xl bg-[#F47C20] px-5 py-3 text-sm font-extrabold text-white shadow-sm shadow-orange-900/10 transition-all duration-300 hover:-translate-y-1 hover:bg-[#DE6810] hover:shadow-md focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#F47C20] active:scale-95">
                             Réserver ce voyage
                             <svg class="size-4 transition-transform duration-300 group-hover/button:translate-x-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14m-6-6 6 6-6 6" /></svg>
                         </a>
@@ -304,7 +368,7 @@
                     </span>
                     <h3 class="mt-4 text-lg font-black text-slate-800">Aucun voyage disponible pour le moment</h3>
                     <p class="mx-auto mt-2 max-w-md text-sm leading-6 text-slate-500">Les prochains départs s'afficheront ici dès qu'ils seront disponibles. Vous pouvez aussi consulter tous les voyages.</p>
-                    <a href="{{ route('trips.index') }}" class="mt-6 inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-[#0B6E4F] px-5 py-3 text-sm font-bold text-white transition hover:bg-emerald-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0B6E4F]">
+                    <a href="{{ route('trips.index') }}" class="mt-6 inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-[#0B6E4F] px-5 py-3 text-sm font-bold text-white transition hover:bg-emerald-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0B6E4F] active:scale-95">
                         Consulter les voyages
                         <svg class="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14m-6-6 6 6-6 6" /></svg>
                     </a>
@@ -317,7 +381,7 @@
 {{-- =========================================================
      AVANTAGES MONSIÈGE
 ========================================================= --}}
-<section class="bg-white py-16 sm:py-20">
+<section class="scroll-reveal bg-white py-16 sm:py-20">
     <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div class="mx-auto max-w-2xl text-center">
             <span class="text-xs font-extrabold uppercase tracking-[0.2em] text-[#F47C20]">Pourquoi MonSiège ?</span>
@@ -326,24 +390,24 @@
         </div>
 
         <div class="mt-10 grid gap-5 md:grid-cols-3">
-            <article class="group rounded-3xl border border-emerald-100 bg-gradient-to-br from-emerald-50 to-white p-7 transition duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-emerald-900/5">
-                <div class="flex size-13 items-center justify-center rounded-2xl bg-[#0B6E4F] text-white shadow-lg shadow-emerald-900/15 transition duration-300 group-hover:rotate-3 group-hover:scale-105" aria-hidden="true">
+            <article class="group rounded-3xl border border-emerald-100 bg-gradient-to-br from-emerald-50 to-white p-7 transition-all duration-300 hover:-translate-y-2 hover:shadow-xl hover:shadow-emerald-900/10 active:scale-95">
+                <div class="flex size-13 items-center justify-center rounded-2xl bg-[#0B6E4F] text-white shadow-lg shadow-emerald-900/15 transition duration-300 group-hover:rotate-3 group-hover:scale-110" aria-hidden="true">
                     <svg class="size-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="m5 12 4 4L19 6" /></svg>
                 </div>
                 <h3 class="mt-5 text-lg font-black text-[#1E293B]">Réservation simple</h3>
                 <p class="mt-2 text-sm leading-7 text-slate-600">Trouvez un trajet et préparez votre réservation en quelques étapes faciles.</p>
             </article>
 
-            <article class="group rounded-3xl border border-orange-100 bg-gradient-to-br from-orange-50 to-white p-7 transition duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-orange-900/5">
-                <div class="flex size-13 items-center justify-center rounded-2xl bg-[#F47C20] text-white shadow-lg shadow-orange-900/15 transition duration-300 group-hover:rotate-3 group-hover:scale-105" aria-hidden="true">
+            <article class="group rounded-3xl border border-orange-100 bg-gradient-to-br from-orange-50 to-white p-7 transition-all duration-300 hover:-translate-y-2 hover:shadow-xl hover:shadow-orange-900/10 active:scale-95">
+                <div class="flex size-13 items-center justify-center rounded-2xl bg-[#F47C20] text-white shadow-lg shadow-orange-900/15 transition duration-300 group-hover:rotate-3 group-hover:scale-110" aria-hidden="true">
                     <svg class="size-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="4" width="16" height="16" rx="3" /><path stroke-linecap="round" stroke-linejoin="round" d="M8 8h3v3H8zM13 8h3M13 11h3M8 14h3v3H8zM13 14h3v3h-3z" /></svg>
                 </div>
                 <h3 class="mt-5 text-lg font-black text-[#1E293B]">Choix de votre siège</h3>
                 <p class="mt-2 text-sm leading-7 text-slate-600">Visualisez les places disponibles et choisissez celle qui vous convient.</p>
             </article>
 
-            <article class="group rounded-3xl border border-slate-200 bg-gradient-to-br from-slate-100 to-white p-7 transition duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-slate-900/5">
-                <div class="flex size-13 items-center justify-center rounded-2xl bg-[#1E293B] text-white shadow-lg shadow-slate-900/15 transition duration-300 group-hover:rotate-3 group-hover:scale-105" aria-hidden="true">
+            <article class="group rounded-3xl border border-slate-200 bg-gradient-to-br from-slate-100 to-white p-7 transition-all duration-300 hover:-translate-y-2 hover:shadow-xl hover:shadow-slate-900/10 active:scale-95">
+                <div class="flex size-13 items-center justify-center rounded-2xl bg-[#1E293B] text-white shadow-lg shadow-slate-900/15 transition duration-300 group-hover:rotate-3 group-hover:scale-110" aria-hidden="true">
                     <svg class="size-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="4" width="6" height="6" /><rect x="14" y="4" width="6" height="6" /><rect x="4" y="14" width="6" height="6" /><path stroke-linecap="round" d="M14 14h2v2h-2zM18 14h2M14 18h2M18 18h2v2h-2z" /></svg>
                 </div>
                 <h3 class="mt-5 text-lg font-black text-[#1E293B]">Billet numérique</h3>
@@ -352,5 +416,29 @@
         </div>
     </div>
 </section>
+
+{{-- Script pour déclencher l'animation au scroll --}}
+@push('scripts')
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('is-revealed');
+                    // Décommenter pour ne jouer l'animation qu'une seule fois
+                    // observer.unobserve(entry.target); 
+                }
+            });
+        }, {
+            threshold: 0.1, // L'élément doit être visible à 10% pour se déclencher
+            rootMargin: "0px 0px -50px 0px"
+        });
+
+        document.querySelectorAll('.scroll-reveal').forEach(el => {
+            observer.observe(el);
+        });
+    });
+</script>
+@endpush
 
 @endsection

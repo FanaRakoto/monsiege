@@ -7,12 +7,15 @@ use App\Http\Controllers\ReservationController;
 use App\Http\Controllers\TicketController;
 use App\Http\Controllers\TripController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Admin\AuthController as AdminAuthController;
+use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 
 /*
 |--------------------------------------------------------------------------
 | Accueil public
 |--------------------------------------------------------------------------
 */
+
 Route::get('/', [TripController::class, 'home'])->name('home');
 
 /*
@@ -30,6 +33,10 @@ Route::prefix('voyages')
         Route::get('/{trip}', 'show')
             ->whereUuid('trip')
             ->name('show');
+
+        Route::view('/historique', 'history.notice')
+            ->middleware('throttle:30,1')
+            ->name('history.notice');
     });
 
 /*
@@ -129,4 +136,24 @@ Route::middleware('guest')->group(function (): void {
     Route::post('/inscription', [ClientAuthController::class, 'register'])
         ->middleware('throttle:5,1')
         ->name('register.store');
+});
+
+
+// Connexion d'administration distincte de la connexion client.
+Route::prefix('admin')->name('admin.')->group(function (): void {
+    Route::middleware('guest')->group(function (): void {
+        Route::get('/connexion', [AdminAuthController::class, 'showLogin'])->name('login');
+        Route::post('/connexion', [AdminAuthController::class, 'login'])
+            ->middleware('throttle:5,1')
+            ->name('login.store');
+    });
+
+    Route::middleware('auth')->group(function (): void {
+        Route::post('/deconnexion', [AdminAuthController::class, 'logout'])->name('logout');
+        Route::get('/', [AdminDashboardController::class, 'index'])->name('dashboard');
+        Route::get('/voyages', [AdminDashboardController::class, 'trips'])->name('trips');
+        Route::get('/reservations', [AdminDashboardController::class, 'reservations'])->name('reservations');
+        Route::get('/utilisateurs', [AdminDashboardController::class, 'users'])->name('users');
+        Route::get('/vehicules', [AdminDashboardController::class, 'vehicles'])->name('vehicles');
+    });
 });

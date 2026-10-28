@@ -9,6 +9,7 @@ use App\Http\Controllers\TripController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Admin\AuthController as AdminAuthController;
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
+use App\Http\Controllers\Admin\ManagementController as AdminManagementController;
 
 /*
 |--------------------------------------------------------------------------
@@ -17,7 +18,9 @@ use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 */
 
 Route::get('/', [TripController::class, 'home'])->name('home');
-
+Route::view('/historique', 'history.notice')
+    ->middleware('throttle:30,1')
+    ->name('history.notice');
 /*
 |--------------------------------------------------------------------------
 | Voyages publics
@@ -151,9 +154,28 @@ Route::prefix('admin')->name('admin.')->group(function (): void {
     Route::middleware('auth')->group(function (): void {
         Route::post('/deconnexion', [AdminAuthController::class, 'logout'])->name('logout');
         Route::get('/', [AdminDashboardController::class, 'index'])->name('dashboard');
-        Route::get('/voyages', [AdminDashboardController::class, 'trips'])->name('trips');
+
+        // Voyages : liste, création, édition et suppression sécurisée.
+        Route::get('/voyages', [AdminManagementController::class, 'trips'])->name('trips');
+        Route::get('/voyages/creer', [AdminManagementController::class, 'createTrip'])->name('trips.create');
+        Route::post('/voyages', [AdminManagementController::class, 'storeTrip'])->name('trips.store');
+        Route::get('/voyages/{trip}/modifier', [AdminManagementController::class, 'editTrip'])->whereUuid('trip')->name('trips.edit');
+        Route::put('/voyages/{trip}', [AdminManagementController::class, 'updateTrip'])->whereUuid('trip')->name('trips.update');
+        Route::delete('/voyages/{trip}', [AdminManagementController::class, 'destroyTrip'])->whereUuid('trip')->name('trips.destroy');
+
+        // Véhicules : liste, ajout avec image, édition et suppression sécurisée.
+        Route::get('/vehicules', [AdminManagementController::class, 'vehicles'])->name('vehicles');
+        Route::get('/vehicules/ajouter', [AdminManagementController::class, 'createVehicle'])->name('vehicles.create');
+        Route::post('/vehicules', [AdminManagementController::class, 'storeVehicle'])->name('vehicles.store');
+        Route::get('/vehicules/{vehicle}/modifier', [AdminManagementController::class, 'editVehicle'])->whereUuid('vehicle')->name('vehicles.edit');
+        Route::put('/vehicules/{vehicle}', [AdminManagementController::class, 'updateVehicle'])->whereUuid('vehicle')->name('vehicles.update');
+        Route::delete('/vehicules/{vehicle}', [AdminManagementController::class, 'destroyVehicle'])->whereUuid('vehicle')->name('vehicles.destroy');
+
+        // Utilisateurs : liste avec filtres et suppression protégée.
+        Route::get('/utilisateurs', [AdminManagementController::class, 'users'])->name('users');
+        Route::delete('/utilisateurs/{user}', [AdminManagementController::class, 'destroyUser'])->whereUuid('user')->name('users.destroy');
+
+        // Les réservations restent en consultation dans cette première étape.
         Route::get('/reservations', [AdminDashboardController::class, 'reservations'])->name('reservations');
-        Route::get('/utilisateurs', [AdminDashboardController::class, 'users'])->name('users');
-        Route::get('/vehicules', [AdminDashboardController::class, 'vehicles'])->name('vehicles');
     });
 });

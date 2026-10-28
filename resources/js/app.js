@@ -13,6 +13,7 @@
 | 1. Menu mobile
 |--------------------------------------------------------------------------
 */
+import '@fortawesome/fontawesome-free/css/all.min.css';
 
 function initMobileMenu() {
     const menuButton = document.getElementById('mobile-menu-button');

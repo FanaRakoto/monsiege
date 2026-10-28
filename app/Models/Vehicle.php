@@ -21,6 +21,7 @@ class Vehicle extends Model
         'capacity',
         'status',
         'description',
+        'image_path',
     ];
 
     protected function casts(): array

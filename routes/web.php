@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Admin\AuthController as AdminAuthController;
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Admin\ManagementController as AdminManagementController;
+use App\Http\Controllers\Admin\NotificationController as AdminNotificationController;
 
 /*
 |--------------------------------------------------------------------------
@@ -177,5 +178,10 @@ Route::prefix('admin')->name('admin.')->group(function (): void {
 
         // Les réservations restent en consultation dans cette première étape.
         Route::get('/reservations', [AdminDashboardController::class, 'reservations'])->name('reservations');
+
+        Route::get('/notifications', [AdminNotificationController::class, 'index'])->name('notifications.index');
+        Route::post('/notifications/lire-tout', [AdminNotificationController::class, 'markAllRead'])->name('notifications.read-all');
+        Route::post('/notifications/{notificationId}/lire', [AdminNotificationController::class, 'markRead'])->name('notifications.read');
+        Route::delete('/notifications/{notificationId}', [AdminNotificationController::class, 'destroy'])->name('notifications.destroy');
     });
 });

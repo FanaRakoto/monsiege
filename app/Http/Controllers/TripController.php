@@ -56,7 +56,7 @@ class TripController extends Controller
 
         $trips = $query
             ->orderBy('departure_at')
-            ->paginate(4)
+            ->paginate(6)
             ->withQueryString();
 
         return view('trips.index', compact('trips', 'search'));

@@ -1,0 +1,12 @@
+1) Ajouter cet import avec les imports existants en haut de routes/web.php :
+
+use App\Http\Controllers\Admin\NotificationController as AdminNotificationController;
+
+2) Dans le groupe existant Route::prefix('admin')->name('admin.')->group(...), à l'intérieur de son groupe Route::middleware('auth')->group(...), ajouter :
+
+Route::get('/notifications', [AdminNotificationController::class, 'index'])->name('notifications.index');
+Route::post('/notifications/lire-tout', [AdminNotificationController::class, 'markAllRead'])->name('notifications.read-all');
+Route::post('/notifications/{notificationId}/lire', [AdminNotificationController::class, 'markRead'])->name('notifications.read');
+Route::delete('/notifications/{notificationId}', [AdminNotificationController::class, 'destroy'])->name('notifications.destroy');
+
+Ne pas créer un second groupe admin et ne pas dupliquer les routes déjà présentes.

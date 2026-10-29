@@ -1,0 +1,10 @@
+Dans resources/views/admin/layout.blade.php, à l'intérieur du <nav aria-label="Menu de gestion"> existant, ajouter par exemple juste après le lien Vue générale :
+
+<a href="{{ route('admin.notifications.index') }}" @class(['admin-sidebar-link', 'active' => request()->routeIs('admin.notifications.*')])>
+    <span class="admin-icon"><i class="fa-solid fa-bell" aria-hidden="true"></i></span>
+    <span class="flex-1">Notifications</span>
+    @php($adminUnreadCount = auth()->user()->unreadNotifications()->count())
+    @if ($adminUnreadCount > 0)
+        <span class="rounded-full bg-orange-500 px-2 py-0.5 text-[10px] font-black text-white">{{ $adminUnreadCount > 99 ? '99+' : $adminUnreadCount }}</span>
+    @endif
+</a>

@@ -3,195 +3,68 @@
 @section('title', 'Informations des passagers - MonSiège')
 
 @section('content')
-<section class="min-h-screen bg-slate-50">
-    <div class="mx-auto max-w-5xl px-4 py-10 sm:px-6 lg:px-8">
-
-        <div class="mb-8">
-            <span class="text-xs font-bold uppercase tracking-[0.2em] text-[#F47C20]">
-                Étape 2
-            </span>
-
-            <h1 class="mt-2 text-3xl font-black text-[#1E293B]">
-                Informations des passagers
-            </h1>
-
-            <p class="mt-2 text-slate-500">
-                {{ $trip->departure_city }} → {{ $trip->arrival_city }}
-            </p>
+@php
+    $primaryNameParts = preg_split('/\s+/', trim((string) ($reservationUser?->name ?? '')), 2);
+@endphp
+<section class="min-h-[75vh] bg-slate-50 px-4 py-8 sm:py-12">
+    <div class="mx-auto max-w-4xl">
+        <div class="mb-7">
+            <p class="text-xs font-extrabold uppercase tracking-[.2em] text-[#F47C20]">Étape 2 sur 3 · Passagers</p>
+            <h1 class="mt-2 text-3xl font-black tracking-tight text-slate-900 sm:text-4xl">Qui voyage avec vous ?</h1>
+            <p class="mt-2 text-sm leading-6 text-slate-600">Renseignez les informations de chaque passager. Un formulaire correspond à un siège sélectionné.</p>
         </div>
 
-        {{-- Afficher les erreurs de validation --}}
         @if ($errors->any())
-        <div class="mb-6 rounded-2xl border border-red-200 bg-red-50 p-5 text-red-800">
-            <h2 class="font-bold">
-                Impossible de continuer
-            </h2>
-
-            <ul class="mt-2 list-inside list-disc space-y-1 text-sm">
-                @foreach ($errors->all() as $error)
-                <li>{{ $error }}</li>
-                @endforeach
-            </ul>
-        </div>
+            <div role="alert" class="mb-6 rounded-2xl border border-red-200 bg-red-50 p-4 text-sm font-medium text-red-800">
+                @foreach ($errors->all() as $error)<p>{{ $error }}</p>@endforeach
+            </div>
         @endif
 
-        {{-- Un seul formulaire englobe les passagers et le résumé --}}
-        <form
-            method="POST"
-            action="{{ route('reservations.passengers.store', ['trip' => $trip]) }}"
-            class="grid gap-6 lg:grid-cols-[1fr_320px]">
-            @csrf
-
-            {{-- Informations des passagers --}}
-            <div class="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-
-                @for ($i = 0; $i < $passengerCount; $i++)
-
-                    <div class="mb-6 rounded-2xl border border-slate-200 p-5 last:mb-0">
-
-                    <div class="mb-5 flex items-center justify-between">
-                        <h2 class="font-black text-[#1E293B]">
-                            Passager {{ $i + 1 }}
-                        </h2>
-
-                        <span class="rounded-full bg-[#F47C20]/10 px-3 py-1 text-xs font-bold text-[#F47C20]">
-                            Siège {{ $seats[$i]->seat_number ?? '?' }}
-                        </span>
-                    </div>
-
-                    <div class="grid gap-4 sm:grid-cols-2">
-
-                        <div>
-                            <label class="mb-2 block text-sm font-semibold text-slate-700">
-                                Prénom
-                            </label>
-
-                            <input
-                                type="text"
-                                name="first_name[]"
-                                value="{{ old('first_name.' . $i) }}"
-                                required
-                                maxlength="100"
-                                autocomplete="given-name"
-                                class="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 outline-none focus:border-[#0B6E4F] focus:ring-2 focus:ring-[#0B6E4F]/10">
-                        </div>
-
-                        <div>
-                            <label class="mb-2 block text-sm font-semibold text-slate-700">
-                                Nom
-                            </label>
-
-                            <input
-                                type="text"
-                                name="last_name[]"
-                                value="{{ old('last_name.' . $i) }}"
-                                required
-                                maxlength="100"
-                                autocomplete="family-name"
-                                class="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 outline-none focus:border-[#0B6E4F] focus:ring-2 focus:ring-[#0B6E4F]/10">
-                        </div>
-
-                        <div>
-                            <label class="mb-2 block text-sm font-semibold text-slate-700">
-                                Téléphone
-                            </label>
-
-                            <input
-                                type="tel"
-                                name="phone[]"
-                                value="{{ old('phone.' . $i) }}"
-                                required
-                                maxlength="30"
-                                autocomplete="tel"
-                                class="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 outline-none focus:border-[#0B6E4F] focus:ring-2 focus:ring-[#0B6E4F]/10">
-                        </div>
-
-                        <div>
-                            <label class="mb-2 block text-sm font-semibold text-slate-700">
-                                Email (facultatif)
-                            </label>
-
-                            <input
-                                type="email"
-                                name="email[]"
-                                value="{{ old('email.' . $i) }}"
-                                maxlength="255"
-                                autocomplete="email"
-                                class="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 outline-none focus:border-[#0B6E4F] focus:ring-2 focus:ring-[#0B6E4F]/10">
-                        </div>
-
-                    </div>
-            </div>
-
-            @endfor
-
-    </div>
-
-    {{-- Résumé de la réservation --}}
-    <aside class="h-fit rounded-3xl border border-slate-200 bg-white p-6 shadow-sm lg:sticky lg:top-28">
-
-        <h2 class="text-xl font-black text-[#1E293B]">
-            Résumé
-        </h2>
-
-        <div class="mt-5 space-y-4">
-
-            <div>
-                <p class="text-xs font-bold uppercase tracking-wider text-slate-400">
-                    Chauffeur
-                </p>
-
-                <p class="mt-1 font-bold text-slate-700">
-                    {{ $trip->driver?->user?->name ?? 'Non affecté' }}
-                </p>
-            </div>
-
-            <div>
-                <p class="text-xs font-bold uppercase tracking-wider text-slate-400">
-                    Réservateur
-                </p>
-
-                <p class="mt-1 font-bold text-slate-700">
-                    {{ $reservationUser?->name ?? 'Non renseigné' }}
-                </p>
-            </div>
-
-            <div>
-                <p class="text-xs font-bold uppercase tracking-wider text-slate-400">
-                    Sièges sélectionnés
-                </p>
-
-                <div class="mt-2 flex flex-wrap gap-2">
-                    @foreach ($seats as $seat)
-                    <span class="rounded-lg bg-[#F47C20]/10 px-3 py-2 text-xs font-bold text-[#F47C20]">
-                        {{ $seat->seat_number }}
-                    </span>
-                    @endforeach
-                </div>
-            </div>
-
-            <div class="border-t border-slate-100 pt-4">
-                <p class="text-xs font-bold uppercase tracking-wider text-slate-400">
-                    Prix total
-                </p>
-
-                <p class="mt-1 text-2xl font-black text-[#0B6E4F]">
-                    {{ number_format($reservation->total_amount, 0, ',', ' ') }} Ar
-                </p>
-            </div>
-
-            <button
-                type="submit"
-                class="mt-4 w-full rounded-xl bg-[#0B6E4F] px-5 py-4 font-bold text-white transition hover:bg-[#08563D] focus:outline-none focus:ring-4 focus:ring-[#0B6E4F]/20">
-                Continuer vers le paiement
-                <span aria-hidden="true">→</span>
-            </button>
-
+        <div class="mb-6 grid gap-4 rounded-3xl border border-slate-200 bg-white p-5 shadow-sm sm:grid-cols-3">
+            <div><p class="text-xs font-semibold uppercase tracking-wide text-slate-400">Itinéraire</p><p class="mt-1 font-extrabold text-slate-900">{{ $trip->departure_city }} → {{ $trip->arrival_city }}</p></div>
+            <div><p class="text-xs font-semibold uppercase tracking-wide text-slate-400">Départ</p><p class="mt-1 font-extrabold text-slate-900">{{ $trip->departure_at->format('d/m/Y à H:i') }}</p></div>
+            <div><p class="text-xs font-semibold uppercase tracking-wide text-slate-400">Total provisoire</p><p class="mt-1 text-xl font-black text-[#0B6E4F]">{{ number_format((float) $reservation->total_amount, 0, ',', ' ') }} Ar</p></div>
         </div>
-    </aside>
 
-    </form>
+        <form method="POST" action="{{ route('reservations.passengers.store', ['trip' => $trip]) }}" class="space-y-5">
+            @csrf
+            @foreach ($seats as $index => $seat)
+                <section class="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
+                    <div class="flex flex-wrap items-center justify-between gap-3 bg-emerald-50/70 px-5 py-4 sm:px-6">
+                        <div><p class="text-xs font-bold uppercase tracking-wider text-slate-500">Passager {{ $index + 1 }}</p><h2 class="mt-1 text-lg font-black text-slate-900">Informations personnelles</h2></div>
+                        <span class="inline-flex items-center gap-2 rounded-full bg-[#0B6E4F] px-3 py-2 text-sm font-extrabold text-white"><i class="fa-solid fa-chair" aria-hidden="true"></i> Siège {{ $seat->seat_number }}</span>
+                    </div>
+                    <div class="grid gap-4 p-5 sm:grid-cols-2 sm:p-6">
+                        <div>
+                            <label for="first_name_{{ $index }}" class="mb-1.5 block text-sm font-bold text-slate-700">Prénom <span class="text-rose-600">*</span></label>
+                            <input id="first_name_{{ $index }}" name="first_name[{{ $index }}]" type="text" maxlength="100" required autocomplete="given-name" value="{{ old('first_name.'.$index, $index === 0 ? ($primaryNameParts[0] ?? '') : '') }}" class="w-full rounded-xl border border-slate-200 px-4 py-3 text-slate-900 outline-none transition focus:border-[#0B6E4F] focus:ring-4 focus:ring-emerald-100">
+                            @error('first_name.'.$index)<p class="mt-1 text-sm text-rose-600">{{ $message }}</p>@enderror
+                        </div>
+                        <div>
+                            <label for="last_name_{{ $index }}" class="mb-1.5 block text-sm font-bold text-slate-700">Nom <span class="text-rose-600">*</span></label>
+                            <input id="last_name_{{ $index }}" name="last_name[{{ $index }}]" type="text" maxlength="100" required autocomplete="family-name" value="{{ old('last_name.'.$index, $index === 0 ? ($primaryNameParts[1] ?? '') : '') }}" class="w-full rounded-xl border border-slate-200 px-4 py-3 text-slate-900 outline-none transition focus:border-[#0B6E4F] focus:ring-4 focus:ring-emerald-100">
+                            @error('last_name.'.$index)<p class="mt-1 text-sm text-rose-600">{{ $message }}</p>@enderror
+                        </div>
+                        <div>
+                            <label for="phone_{{ $index }}" class="mb-1.5 block text-sm font-bold text-slate-700">Téléphone <span class="text-rose-600">*</span></label>
+                            <input id="phone_{{ $index }}" name="phone[{{ $index }}]" type="tel" maxlength="30" required autocomplete="tel" placeholder="034 00 000 00" value="{{ old('phone.'.$index, $index === 0 ? ($reservationUser?->phone ?? '') : '') }}" class="w-full rounded-xl border border-slate-200 px-4 py-3 text-slate-900 outline-none transition focus:border-[#0B6E4F] focus:ring-4 focus:ring-emerald-100">
+                            @error('phone.'.$index)<p class="mt-1 text-sm text-rose-600">{{ $message }}</p>@enderror
+                        </div>
+                        <div>
+                            <label for="email_{{ $index }}" class="mb-1.5 block text-sm font-bold text-slate-700">E-mail <span class="text-xs font-normal text-slate-400">(facultatif)</span></label>
+                            <input id="email_{{ $index }}" name="email[{{ $index }}]" type="email" maxlength="255" autocomplete="email" placeholder="nom@exemple.mg" value="{{ old('email.'.$index, $index === 0 ? ($reservationUser?->email ?? '') : '') }}" class="w-full rounded-xl border border-slate-200 px-4 py-3 text-slate-900 outline-none transition focus:border-[#0B6E4F] focus:ring-4 focus:ring-emerald-100">
+                            @error('email.'.$index)<p class="mt-1 text-sm text-rose-600">{{ $message }}</p>@enderror
+                        </div>
+                    </div>
+                </section>
+            @endforeach
 
+            <div class="flex flex-col-reverse justify-between gap-3 sm:flex-row sm:items-center">
+                <a href="{{ route('reservations.create', ['trip' => $trip, 'passengers' => $passengerCount]) }}" class="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-5 py-3 font-bold text-slate-700 transition hover:bg-slate-50"><i class="fa-solid fa-arrow-left" aria-hidden="true"></i> Retour aux sièges</a>
+                <button type="submit" class="inline-flex items-center justify-center gap-2 rounded-xl bg-[#0B6E4F] px-6 py-4 font-extrabold text-white shadow-lg shadow-emerald-900/10 transition hover:-translate-y-0.5 hover:bg-[#08563D]"><i class="fa-solid fa-lock" aria-hidden="true"></i> Continuer vers le paiement <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></button>
+            </div>
+            <p class="text-center text-xs leading-5 text-slate-400">Vos informations servent à identifier les passagers sur le billet.</p>
+        </form>
     </div>
 </section>
 @endsection

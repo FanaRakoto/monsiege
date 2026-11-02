@@ -24,12 +24,6 @@ class ReservationController extends Controller
             404
         );
 
-        $validated = $request->validate([
-            'passengers' => ['nullable', 'integer', 'min:1', 'max:20'],
-        ]);
-
-        $passengerCount = (int) ($validated['passengers'] ?? 1);
-
         $trip->load([
             'agency',
             'vehicle.seats' => function ($query) {
@@ -67,8 +61,6 @@ class ReservationController extends Controller
             'seatCount' => $seatCount,
             'occupiedSeatCount' => $occupiedSeatCount,
             'availableSeatCount' => $availableSeatCount,
-            'passengerCount' => $passengerCount,
-            'canBook' => $passengerCount <= $availableSeatCount,
         ]);
     }
 
@@ -78,27 +70,26 @@ class ReservationController extends Controller
      */
     public function storeSelection(Request $request, Trip $trip)
     {
-        $validated = $request->validate([
-            'seat_ids' => ['required', 'array', 'min:1', 'max:20'],
-            'seat_ids.*' => ['required', 'uuid', 'distinct'],
-            'passengers' => ['required', 'integer', 'min:1', 'max:20'],
-        ]);
-
-        $seatIds = collect($validated['seat_ids'])->unique()->values();
-        $passengerCount = (int) $validated['passengers'];
-
-        if ($seatIds->count() !== $passengerCount) {
-            return back()->withErrors([
-                'seat_ids' => 'Le nombre de sièges sélectionnés doit correspondre au nombre de passagers.',
-            ])->withInput();
-        }
-
         abort_unless(
             $trip->status === 'scheduled' && $trip->departure_at->isFuture(),
             404
         );
 
         $trip->loadMissing('vehicle');
+
+        $maxSelectableSeats = max(1, (int) $trip->vehicle->seats()
+            ->where('is_active', true)
+            ->count());
+
+        // Le nombre de passagers vient directement du nombre de sièges choisis.
+        // Le paramètre URL ?passengers=1 ne bloque donc jamais la sélection à un seul siège.
+        $validated = $request->validate([
+            'seat_ids' => ['required', 'array', 'min:1', 'max:' . $maxSelectableSeats],
+            'seat_ids.*' => ['required', 'uuid', 'distinct'],
+        ]);
+
+        $seatIds = collect($validated['seat_ids'])->unique()->values();
+        $passengerCount = $seatIds->count();
 
         $validSeatCount = $trip->vehicle->seats()
             ->where('is_active', true)
@@ -389,8 +380,10 @@ class ReservationController extends Controller
                 'string',
                 'max:30',
             ],
+            // L'adresse e-mail est entièrement facultative : la réservation
+            // repose sur le nom et le téléphone mobile du passager.
             'email' => [
-                'present',
+                'sometimes',
                 'array',
                 'size:' . $reservation->passenger_count,
             ],

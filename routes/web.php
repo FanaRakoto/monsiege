@@ -11,6 +11,7 @@ use App\Http\Controllers\Admin\AuthController as AdminAuthController;
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Admin\ManagementController as AdminManagementController;
 use App\Http\Controllers\Admin\NotificationController as AdminNotificationController;
+use App\Http\Controllers\TicketPdfController;
 
 /*
 |--------------------------------------------------------------------------
@@ -99,6 +100,12 @@ Route::get('/billets/{ticket}', [TicketController::class, 'show'])
     ->whereUuid('ticket')
     ->name('tickets.show');
 
+Route::get('/billets/{ticket}/telecharger', [
+    TicketPdfController::class,
+    'download'
+])
+    ->whereUuid('ticket')
+    ->name('tickets.download');
 /*
 |--------------------------------------------------------------------------
 | Vérification et contrôle du QR Code : personnel connecté uniquement

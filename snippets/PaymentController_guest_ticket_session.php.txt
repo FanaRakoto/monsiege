@@ -1,0 +1,14 @@
+// Dans app/Http/Controllers/PaymentController.php, dans le bloc `if ($ticket)`
+// qui suit la transaction, assure-toi que la session conserve le ticket invité.
+// Ajoute cette ligne AVANT d'effacer monsiege.reservation_id :
+$request->session()->put('monsiege.ticket_id', $ticket->id);
+
+// Le bloc doit garder la logique de redirection existante. Par exemple :
+if ($ticket) {
+    $request->session()->put('monsiege.ticket_id', $ticket->id);
+    $request->session()->forget('monsiege.reservation_id');
+
+    return redirect()->route('tickets.show', [
+        'ticket' => $ticket->id,
+    ])->with('payment_success', true);
+}

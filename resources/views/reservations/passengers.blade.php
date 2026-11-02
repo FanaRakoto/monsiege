@@ -11,7 +11,7 @@
         <div class="mb-7">
             <p class="text-xs font-extrabold uppercase tracking-[.2em] text-[#F47C20]">Étape 2 sur 3 · Passagers</p>
             <h1 class="mt-2 text-3xl font-black tracking-tight text-slate-900 sm:text-4xl">Qui voyage avec vous ?</h1>
-            <p class="mt-2 text-sm leading-6 text-slate-600">Renseignez les informations de chaque passager. Un formulaire correspond à un siège sélectionné.</p>
+            <p class="mt-2 text-sm leading-6 text-slate-600">Renseignez le nom et le téléphone mobile de chaque passager. Un formulaire correspond à un siège réservé. L’adresse e-mail est facultative : laissez-la vide si vous n’en avez pas.</p>
         </div>
 
         @if ($errors->any())
@@ -19,6 +19,8 @@
                 @foreach ($errors->all() as $error)<p>{{ $error }}</p>@endforeach
             </div>
         @endif
+
+        <div class="mb-4 rounded-2xl border border-emerald-100 bg-emerald-50/80 px-4 py-3 text-sm leading-6 text-emerald-900"><i class="fa-solid fa-mobile-screen-button mr-2" aria-hidden="true"></i><strong>Réservation avec téléphone mobile :</strong> aucun compte ni e-mail n’est obligatoire pour réserver en tant que visiteur. Les informations saisies servent à identifier les passagers sur le billet.</div>
 
         <div class="mb-6 grid gap-4 rounded-3xl border border-slate-200 bg-white p-5 shadow-sm sm:grid-cols-3">
             <div><p class="text-xs font-semibold uppercase tracking-wide text-slate-400">Itinéraire</p><p class="mt-1 font-extrabold text-slate-900">{{ $trip->departure_city }} → {{ $trip->arrival_city }}</p></div>
@@ -51,7 +53,7 @@
                             @error('phone.'.$index)<p class="mt-1 text-sm text-rose-600">{{ $message }}</p>@enderror
                         </div>
                         <div>
-                            <label for="email_{{ $index }}" class="mb-1.5 block text-sm font-bold text-slate-700">E-mail <span class="text-xs font-normal text-slate-400">(facultatif)</span></label>
+                            <label for="email_{{ $index }}" class="mb-1.5 block text-sm font-bold text-slate-700">E-mail <span class="text-xs font-normal text-slate-400">(facultatif · non obligatoire)</span></label>
                             <input id="email_{{ $index }}" name="email[{{ $index }}]" type="email" maxlength="255" autocomplete="email" placeholder="nom@exemple.mg" value="{{ old('email.'.$index, $index === 0 ? ($reservationUser?->email ?? '') : '') }}" class="w-full rounded-xl border border-slate-200 px-4 py-3 text-slate-900 outline-none transition focus:border-[#0B6E4F] focus:ring-4 focus:ring-emerald-100">
                             @error('email.'.$index)<p class="mt-1 text-sm text-rose-600">{{ $message }}</p>@enderror
                         </div>
@@ -60,10 +62,10 @@
             @endforeach
 
             <div class="flex flex-col-reverse justify-between gap-3 sm:flex-row sm:items-center">
-                <a href="{{ route('reservations.create', ['trip' => $trip, 'passengers' => $passengerCount]) }}" class="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-5 py-3 font-bold text-slate-700 transition hover:bg-slate-50"><i class="fa-solid fa-arrow-left" aria-hidden="true"></i> Retour aux sièges</a>
+                <a href="{{ route('reservations.create', ['trip' => $trip]) }}" class="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-5 py-3 font-bold text-slate-700 transition hover:bg-slate-50"><i class="fa-solid fa-arrow-left" aria-hidden="true"></i> Retour aux sièges</a>
                 <button type="submit" class="inline-flex items-center justify-center gap-2 rounded-xl bg-[#0B6E4F] px-6 py-4 font-extrabold text-white shadow-lg shadow-emerald-900/10 transition hover:-translate-y-0.5 hover:bg-[#08563D]"><i class="fa-solid fa-lock" aria-hidden="true"></i> Continuer vers le paiement <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></button>
             </div>
-            <p class="text-center text-xs leading-5 text-slate-400">Vos informations servent à identifier les passagers sur le billet.</p>
+            <p class="text-center text-xs leading-5 text-slate-400">Le téléphone est requis pour chaque passager. Vous pouvez laisser tous les champs e-mail vides.</p>
         </form>
     </div>
 </section>

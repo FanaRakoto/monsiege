@@ -1,0 +1,8 @@
+// 1) En haut de routes/web.php, avec les autres imports :
+use App\Http\Controllers\TicketPdfController;
+
+// 2) À proximité de la route GET /billets/{ticket} déjà existante.
+// Conserve la route tickets.show et ajoute seulement cette route :
+Route::get('/billets/{ticket}/telecharger', [TicketPdfController::class, 'download'])
+    ->whereUuid('ticket')
+    ->name('tickets.download');

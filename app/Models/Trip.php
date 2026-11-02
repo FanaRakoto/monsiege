@@ -16,6 +16,7 @@ class Trip extends Model
         'agency_id',
         'vehicle_id',
         'driver_id',
+        'receiver_name',
         'departure_city',
         'arrival_city',
         'departure_address',
@@ -67,4 +68,4 @@ class Trip extends Model
     {
         return $this->hasMany(ReservationSeat::class);
     }
-}   
+}

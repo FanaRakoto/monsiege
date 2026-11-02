@@ -66,18 +66,18 @@ class PaymentController extends Controller
                 ]);
         }
 
-        if ($reservation->passengers->count() !== $reservation->passenger_count) {
+        if ($reservation->passengers->isEmpty()) {
             return redirect()
                 ->route('reservations.passengers', ['trip' => $trip])
                 ->withErrors([
-                    'passengers' => 'Veuillez compléter les informations de tous les passagers.',
+                    'passengers' => 'Veuillez renseigner les coordonnées du responsable de la réservation.',
                 ]);
         }
 
         $seatsAreValid =
             $reservation->reservationSeats->count() === $reservation->passenger_count
             && $reservation->reservationSeats->every(
-                fn ($seat) => $seat->status === 'locked'
+                fn($seat) => $seat->status === 'locked'
                     && $seat->locked_until
                     && $seat->locked_until->isFuture()
             );
@@ -146,8 +146,8 @@ class PaymentController extends Controller
                 abort(409, 'La réservation a expiré. Veuillez recommencer.');
             }
 
-            if ($reservation->passengers()->count() !== $reservation->passenger_count) {
-                abort(409, 'Les informations des passagers sont incomplètes.');
+            if (! $reservation->passengers()->exists()) {
+                abort(409, 'Veuillez renseigner les coordonnées du responsable de la réservation.');
             }
 
             $seats = ReservationSeat::query()

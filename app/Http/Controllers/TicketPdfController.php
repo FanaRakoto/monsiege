@@ -58,12 +58,13 @@ class TicketPdfController extends Controller
             ))
             ->values();
 
-        $passengerRows = $reservation->passengers->values()->map(
-            fn ($passenger, $index) => (object) [
-                'passenger' => $passenger,
-                'seat' => $reservationSeats->get($index)?->seat,
-            ]
-        );
+        $contact = $reservation->passengers->firstWhere('is_primary', true)
+            ?? $reservation->passengers->first();
+
+        $seatNumbers = $reservationSeats
+            ->map(fn ($reservationSeat) => $reservationSeat->seat?->seat_number)
+            ->filter()
+            ->values();
 
         // Le logo est intégré en base64 pour rester visible dans Dompdf sans accès réseau.
         $logoData = null;
@@ -93,7 +94,8 @@ class TicketPdfController extends Controller
             'issuedAtDisplay' => $ticket->issued_at
                 ? Carbon::parse($ticket->issued_at)->format('d/m/Y à H:i')
                 : ($ticket->created_at ? Carbon::parse($ticket->created_at)->format('d/m/Y à H:i') : 'Non renseignée'),
-            'passengerRows' => $passengerRows,
+            'contact' => $contact,
+            'seatNumbers' => $seatNumbers,
             'qrCode' => $qrCode,
         ])->setPaper('a4', 'portrait');
 

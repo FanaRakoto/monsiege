@@ -28,10 +28,10 @@
         .details td { border: 1px solid #e2ebe6; padding: 5px 6px; vertical-align: middle; }
         .details .key { width: 17%; color: #6a7a72; background: #f8faf9; font-size: 6.7px; text-transform: uppercase; }
         .details .val { width: 33%; color: #1b352a; font-weight: bold; }
-        .passengers { margin-top: 2px; }
-        .passengers th { padding: 5px 6px; color: #fff; background: #0b6e4f; text-align: left; font-size: 6.8px; text-transform: uppercase; letter-spacing: .4px; }
-        .passengers td { padding: 3.5px 6px; border-bottom: 1px solid #e6eee9; color: #243b31; font-size: 7.5px; }
-        .passengers tr:nth-child(even) td { background: #f7faf8; }
+        .seats { margin-top: 2px; }
+        .seats th { padding: 5px 6px; color: #fff; background: #0b6e4f; text-align: left; font-size: 6.8px; text-transform: uppercase; letter-spacing: .4px; }
+        .seats td { padding: 5px 6px; border: 1px solid #e6eee9; color: #243b31; font-size: 8px; }
+        .seat-chip { display: inline-block; margin: 2px 3px 2px 0; padding: 4px 7px; border: 1px solid #cfe3d8; border-radius: 5px; background: #f2f8f4; color: #0b6e4f; font-weight: bold; }
         .summary td { padding: 6px 7px; border: 1px solid #dfe9e3; background: #f6faf7; vertical-align: middle; }
         .summary .amount { color: #0b6e4f; font-size: 13px; font-weight: bold; }
         .qr-area { margin-top: 8px; border: 1px solid #dce8e1; border-radius: 8px; padding: 7px; }
@@ -54,10 +54,10 @@
             <td>
                 <div class="brand-name">MonSiège</div>
                 <div class="brand-sub">Transport interurbain · Madagascar</div>
-                <div style="margin-top:4px;color:#697a71;font-size:7px;">Billet électronique · À présenter à l'embarquement</div>
+                <div style="margin-top:4px;color:#697a71;font-size:7px;">Billet de groupe · À présenter à l'embarquement</div>
             </td>
             <td class="ticket-ref" style="width:34%;">
-                <div class="label">Numéro du billet</div>
+                <div class="label">Numéro du billet unique</div>
                 <div class="ticket-no">{{ $ticket->ticket_number }}</div>
                 <span class="status {{ $ticket->status === 'used' ? 'used' : ($ticket->status === 'valid' ? '' : 'cancelled') }}">
                     {{ $ticket->status === 'valid' ? 'BILLET VALIDE' : ($ticket->status === 'used' ? 'DÉJÀ UTILISÉ' : 'BILLET ANNULÉ') }}
@@ -95,7 +95,7 @@
         <tr>
             <td class="key">Immatriculation</td>
             <td class="val">{{ $vehicle?->registration_number ?? 'Non renseignée' }}</td>
-            <td class="key">Capacité</td>
+            <td class="key">Capacité véhicule</td>
             <td class="val">{{ $vehicle?->capacity ? $vehicle->capacity . ' places' : 'Non renseignée' }}</td>
         </tr>
         <tr>
@@ -110,22 +110,34 @@
         </tr>
     </table>
 
-    <div class="section">Passagers et sièges réservés</div>
-    <table class="passengers">
-        <thead>
-            <tr><th style="width:8%;">N°</th><th>Nom complet du passager</th><th style="width:20%;">Téléphone</th><th style="width:13%;">Siège</th></tr>
-        </thead>
+    <div class="section">Responsable de la réservation</div>
+    <table class="details">
+        <tr>
+            <td class="key">Nom complet</td>
+            <td class="val">{{ $contact ? trim($contact->first_name . ' ' . $contact->last_name) : 'Non renseigné' }}</td>
+            <td class="key">Téléphone</td>
+            <td class="val">{{ $contact?->phone ?: '—' }}</td>
+        </tr>
+        <tr>
+            <td class="key">E-mail</td>
+            <td class="val" colspan="3">{{ $contact?->email ?: 'Non renseigné' }}</td>
+        </tr>
+    </table>
+
+    <div class="section">Groupe et sièges couverts par ce billet</div>
+    <table class="seats">
+        <thead><tr><th style="width:23%;">Nombre de personnes</th><th>Sièges réservés</th></tr></thead>
         <tbody>
-            @forelse($passengerRows as $index => $row)
-                <tr>
-                    <td>{{ $index + 1 }}</td>
-                    <td>{{ trim($row->passenger->first_name . ' ' . $row->passenger->last_name) }}</td>
-                    <td>{{ $row->passenger->phone ?: '—' }}</td>
-                    <td><strong>{{ $row->seat?->seat_number ?? '—' }}</strong></td>
-                </tr>
-            @empty
-                <tr><td colspan="4">Aucune information de passager.</td></tr>
-            @endforelse
+            <tr>
+                <td><strong style="font-size:13px;color:#0b6e4f;">{{ $reservation->passenger_count }}</strong> personne(s)</td>
+                <td>
+                    @forelse($seatNumbers as $seatNumber)
+                        <span class="seat-chip">{{ $seatNumber }}</span>
+                    @empty
+                        —
+                    @endforelse
+                </td>
+            </tr>
         </tbody>
     </table>
 
@@ -133,7 +145,7 @@
     <table class="summary">
         <tr>
             <td style="width:28%;"><div class="label">Code réservation</div><strong>{{ $reservation->reservation_code ?? '—' }}</strong></td>
-            <td style="width:18%;"><div class="label">Passagers</div><strong>{{ $reservation->passenger_count }}</strong></td>
+            <td style="width:18%;"><div class="label">Billet</div><strong>1 billet de groupe</strong></td>
             <td style="width:27%;"><div class="label">Prix par siège</div><strong>{{ number_format((float) $trip->price, 0, ',', ' ') }} Ar</strong></td>
             <td style="width:27%;"><div class="label">Total réservé</div><div class="amount">{{ number_format((float) $reservation->total_amount, 0, ',', ' ') }} Ar</div></td>
         </tr>
@@ -143,16 +155,16 @@
         <tr>
             <td style="width:72%;">
                 <strong style="font-size:8px;color:#0b6e4f;">Contrôle à l'embarquement</strong>
-                <p class="note" style="margin:4px 0;">Présentez ce QR Code au chauffeur ou au personnel autorisé. Vérifiez les noms et les numéros de siège avant le départ. Chaque siège sélectionné correspond à un passager et au tarif indiqué.</p>
-                <p class="note" style="margin:4px 0 0;">Billet émis le {{ $issuedAtDisplay }}. Le QR Code sert à vérifier le billet et ne contient pas les coordonnées personnelles.</p>
+                <p class="note" style="margin:4px 0;">Ce billet unique couvre le groupe et tous les sièges listés ci-dessus. Présentez le QR Code au chauffeur ou au personnel autorisé. Chaque personne doit occuper un siège réservé.</p>
+                <p class="note" style="margin:4px 0 0;">Billet émis le {{ $issuedAtDisplay }}. Le QR Code vérifie la réservation complète et ne contient pas les coordonnées personnelles.</p>
             </td>
             <td style="width:28%;text-align:center;">
-                <img class="qr" src="{{ $qrCode }}" alt="QR Code du billet">
-                <div style="margin-top:2px;color:#0b6e4f;font-size:7px;font-weight:bold;">QR CODE DU BILLET</div>
+                <img class="qr" src="{{ $qrCode }}" alt="QR Code du billet de groupe">
+                <div style="margin-top:2px;color:#0b6e4f;font-size:7px;font-weight:bold;">QR CODE DU GROUPE</div>
             </td>
         </tr>
     </table>
 
-    <div class="footer">MonSiège · Le montant représente le total des sièges de cette réservation. Une simulation locale n'est pas un encaissement bancaire réel.</div>
+    <div class="footer">MonSiège · Le tarif est calculé par siège réservé. La simulation locale n'est pas un encaissement bancaire réel.</div>
 </body>
 </html>

@@ -250,7 +250,7 @@ class ReservationController extends Controller
         $reservationId = $request->session()->get('monsiege.reservation_id');
 
         $reservation = $this->sessionReservationQuery($request, $trip, $reservationId)
-            ->with(['reservationSeats.seat', 'trip'])
+            ->with(['reservationSeats.seat', 'trip', 'passengers'])
             ->first();
 
         if (
@@ -303,12 +303,16 @@ class ReservationController extends Controller
                 ]);
         }
 
+        $contact = $reservation->passengers->firstWhere('is_primary', true)
+            ?? $reservation->passengers->first();
+
         return view('reservations.passengers', [
             'trip' => $trip,
             'reservation' => $reservation,
             'seats' => $seats,
             'passengerCount' => $reservation->passenger_count,
             'reservationUser' => $request->user(),
+            'contact' => $contact,
         ]);
     }
 
@@ -345,57 +349,25 @@ class ReservationController extends Controller
             return redirect()
                 ->route('reservations.create', ['trip' => $trip])
                 ->withErrors([
-                    'reservation' => 'Votre réservation a expiré ou n’est plus accessible. Veuillez recommencer.',
+                    'reservation' => 'Votre réservation a expiré ou n’est plus accessible. Veuillez choisir de nouveau vos sièges.',
                 ]);
         }
 
+        // Une seule fiche identifie le responsable de toute la réservation.
+        // Le nombre de personnes reste celui des sièges sélectionnés.
         $validated = $request->validate([
-            'first_name' => [
-                'required',
-                'array',
-                'size:' . $reservation->passenger_count,
-            ],
-            'first_name.*' => [
-                'required',
-                'string',
-                'max:100',
-            ],
-            'last_name' => [
-                'required',
-                'array',
-                'size:' . $reservation->passenger_count,
-            ],
-            'last_name.*' => [
-                'required',
-                'string',
-                'max:100',
-            ],
-            'phone' => [
-                'required',
-                'array',
-                'size:' . $reservation->passenger_count,
-            ],
-            'phone.*' => [
-                'required',
-                'string',
-                'max:30',
-            ],
-            // L'adresse e-mail est entièrement facultative : la réservation
-            // repose sur le nom et le téléphone mobile du passager.
-            'email' => [
-                'sometimes',
-                'array',
-                'size:' . $reservation->passenger_count,
-            ],
-            'email.*' => [
-                'nullable',
-                'email',
-                'max:255',
-            ],
+            'first_name' => ['required', 'string', 'max:100'],
+            'last_name' => ['required', 'string', 'max:100'],
+            'phone' => ['required', 'string', 'max:30'],
+            'email' => ['nullable', 'email', 'max:255'],
+        ], [
+            'first_name.required' => 'Le prénom du responsable est obligatoire.',
+            'last_name.required' => 'Le nom du responsable est obligatoire.',
+            'phone.required' => 'Le numéro de téléphone est obligatoire.',
+            'email.email' => 'Veuillez saisir une adresse e-mail valide ou laisser le champ vide.',
         ]);
 
         DB::transaction(function () use ($request, $trip, $reservation, $validated) {
-            // Re-check both session scope/ownership and reservation status under a row lock.
             $lockedReservation = $this->sessionReservationQuery($request, $trip, $reservation->id)
                 ->lockForUpdate()
                 ->firstOrFail();
@@ -408,21 +380,19 @@ class ReservationController extends Controller
                 abort(409, 'La réservation a expiré. Veuillez recommencer.');
             }
 
-            // Replace previously entered passenger data if the form is submitted again.
+            // Conserver une seule fiche de contact principale pour cette réservation.
             $lockedReservation->passengers()->delete();
 
-            foreach ($validated['first_name'] as $index => $firstName) {
-                Passenger::create([
-                    'reservation_id' => $lockedReservation->id,
-                    'first_name' => trim($firstName),
-                    'last_name' => trim($validated['last_name'][$index]),
-                    'phone' => trim($validated['phone'][$index]),
-                    'email' => filled($validated['email'][$index] ?? null)
-                        ? $validated['email'][$index]
-                        : null,
-                    'is_primary' => $index === 0,
-                ]);
-            }
+            Passenger::create([
+                'reservation_id' => $lockedReservation->id,
+                'first_name' => trim($validated['first_name']),
+                'last_name' => trim($validated['last_name']),
+                'phone' => trim($validated['phone']),
+                'email' => filled($validated['email'] ?? null)
+                    ? trim($validated['email'])
+                    : null,
+                'is_primary' => true,
+            ]);
         });
 
         return redirect()->route('reservations.payment.show', [
